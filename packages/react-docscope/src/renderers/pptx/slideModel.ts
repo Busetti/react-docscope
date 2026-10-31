@@ -63,7 +63,9 @@ export function fixParagraphSpacing(html: string): string {
 
 export function safeContent(html: string | undefined): string {
   if (!html) return '';
-  return sanitizeHtml(fixParagraphSpacing(html));
+  // pptxtojson emits &nbsp; between all words, which prevents wrapping; the
+  // container uses `white-space: pre-wrap`, so plain spaces keep the spacing.
+  return sanitizeHtml(fixParagraphSpacing(html).replace(/&nbsp;|\u00a0/g, ' '));
 }
 
 export function fillToCss(fill: PptxFill | null | undefined): CSSProperties {
@@ -75,11 +77,19 @@ export function fillToCss(fill: PptxFill | null | undefined): CSSProperties {
       const v = fill.value as { base64?: string; picBase64?: string };
       const src = v?.base64 || v?.picBase64;
       return src && src.startsWith('data:image/')
-        ? { backgroundImage: `url("${src}")`, backgroundSize: 'cover', backgroundPosition: 'center' }
+        ? {
+            backgroundImage: `url("${src}")`,
+            backgroundSize: 'cover',
+            backgroundPosition: 'center',
+          }
         : {};
     }
     case 'gradient': {
-      const v = fill.value as { rot?: number; path?: string; colors?: Array<{ pos: string; color: string }> };
+      const v = fill.value as {
+        rot?: number;
+        path?: string;
+        colors?: Array<{ pos: string; color: string }>;
+      };
       const stops = (v?.colors ?? []).map((c) => `${c.color} ${c.pos}`).join(', ');
       if (!stops) return {};
       return v.path === 'circle' || v.path === 'rect' || v.path === 'shape'

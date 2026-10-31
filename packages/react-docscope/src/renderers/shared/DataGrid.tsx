@@ -163,8 +163,16 @@ export const DataGrid = memo(function DataGrid({
       tabIndex={0}
       style={{ fontSize: `${12.5 * zoom}px`, ['--dsc-grid-header-h' as string]: `${headerH}px` }}
     >
-      <div className="dsc-grid-canvas" style={{ width: totalW + rowHeaderW, height: totalH + headerH }}>
-        <div className="dsc-grid-colheaders" role="row" aria-rowindex={1} style={{ height: headerH, width: totalW + rowHeaderW }}>
+      <div
+        className="dsc-grid-canvas"
+        style={{ width: totalW + rowHeaderW, height: totalH + headerH }}
+      >
+        <div
+          className="dsc-grid-colheaders"
+          role="row"
+          aria-rowindex={1}
+          style={{ height: headerH, width: totalW + rowHeaderW }}
+        >
           <div className="dsc-grid-corner" style={{ width: rowHeaderW, height: headerH }} />
           {vCols.map((vc) => (
             <div
@@ -199,7 +207,11 @@ export const DataGrid = memo(function DataGrid({
                 className="dsc-grid-row"
                 style={{ top: rr.start, height: rr.size, width: totalW + rowHeaderW }}
               >
-                <div role="rowheader" className="dsc-grid-rowheader" style={{ width: rowHeaderW, height: rr.size }}>
+                <div
+                  role="rowheader"
+                  className="dsc-grid-rowheader"
+                  style={{ width: rowHeaderW, height: rr.size }}
+                >
                   {rowHeader(r)}
                 </div>
                 {cells}

@@ -46,7 +46,12 @@ export async function downloadDocument(options: DownloadOptions): Promise<void> 
     saveBlob(cached, doc.name);
     return;
   }
-  const resolved = await runResolver(resolver, doc, { signal, purpose: 'download', attempt: 0, reason: 'initial' });
+  const resolved = await runResolver(resolver, doc, {
+    signal,
+    purpose: 'download',
+    attempt: 0,
+    reason: 'initial',
+  });
   if (resolved.kind === 'blob') {
     saveBlob(resolved.blob, doc.name);
     return;
@@ -56,7 +61,12 @@ export async function downloadDocument(options: DownloadOptions): Promise<void> 
     saveBlob(blob, doc.name);
   } catch (error) {
     if (isAbortError(error)) throw error;
-    if (!resolved.headers && error instanceof DocumentPreviewError && error.code === 'FETCH_FAILED' && error.status === undefined) {
+    if (
+      !resolved.headers &&
+      error instanceof DocumentPreviewError &&
+      error.code === 'FETCH_FAILED' &&
+      error.status === undefined
+    ) {
       // Likely CORS: let the browser navigate to the URL instead.
       clickLink(resolved.url, doc.name);
       return;

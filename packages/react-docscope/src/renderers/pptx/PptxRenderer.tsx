@@ -33,10 +33,17 @@ export default function PptxRenderer({ document, source, search, view, host }: R
   const { value: deck, error } = useAsync<PptxDeck>(async () => {
     const [buffer, lib] = await Promise.all([source.getArrayBuffer(), import('pptxtojson')]);
     try {
-      const parsed = await lib.parse(buffer, { imageMode: 'base64', videoMode: 'none', audioMode: 'none' });
+      const parsed = await lib.parse(buffer, {
+        imageMode: 'base64',
+        videoMode: 'none',
+        audioMode: 'none',
+      });
       return parsed as unknown as PptxDeck;
     } catch (e) {
-      throw Object.assign(new Error('This presentation could not be read. It may be damaged or not a .pptx file.'), { cause: e, malformed: true });
+      throw Object.assign(
+        new Error('This presentation could not be read. It may be damaged or not a .pptx file.'),
+        { cause: e, malformed: true },
+      );
     }
   }, [source]);
 
@@ -50,7 +57,8 @@ export default function PptxRenderer({ document, source, search, view, host }: R
 
   useEffect(() => {
     if (!deck) return;
-    if (!deck.slides?.length) hostRef.current.setError('EMPTY_DOCUMENT', 'This presentation has no slides.');
+    if (!deck.slides?.length)
+      hostRef.current.setError('EMPTY_DOCUMENT', 'This presentation has no slides.');
     else {
       hostRef.current.setPageCount(deck.slides.length);
       hostRef.current.setReady();
@@ -62,13 +70,24 @@ export default function PptxRenderer({ document, source, search, view, host }: R
   const availW = Math.max(100, size.width - GAP * 2);
   const availH = Math.max(100, size.height - GAP * 2);
   const fitZoom =
-    view.fitMode === 'width' ? availW / slideW : view.fitMode === 'page' ? Math.min(availW / slideW, availH / slideH) : null;
+    view.fitMode === 'width'
+      ? availW / slideW
+      : view.fitMode === 'page'
+        ? Math.min(availW / slideW, availH / slideH)
+        : null;
   const zoom = Math.max(0.05, fitZoom ?? view.zoom);
   useEffect(() => {
     if (deck) hostRef.current.setEffectiveZoom(zoom);
   }, [zoom, deck, hostRef]);
   useWheelZoom(scrollRef, zoom, host);
-  useDomSearch(contentRef, scrollRef, search, host, deck ? `${deck.slides.length}:${zoom}` : null, false);
+  useDomSearch(
+    contentRef,
+    scrollRef,
+    search,
+    host,
+    deck ? `${deck.slides.length}:${zoom}` : null,
+    false,
+  );
 
   // Track the slide in view and react to page requests.
   const lastReported = useRef(0);
@@ -77,7 +96,10 @@ export default function PptxRenderer({ document, source, search, view, host }: R
     if (!root || !deck) return;
     const onScroll = () => {
       const pageH = slideH * zoom + GAP;
-      const current = Math.min(deck.slides.length, Math.max(1, Math.floor((root.scrollTop + root.clientHeight / 3) / pageH) + 1));
+      const current = Math.min(
+        deck.slides.length,
+        Math.max(1, Math.floor((root.scrollTop + root.clientHeight / 3) / pageH) + 1),
+      );
       if (current !== lastReported.current) {
         lastReported.current = current;
         hostRef.current.setCurrentPage(current);
@@ -109,16 +131,38 @@ export default function PptxRenderer({ document, source, search, view, host }: R
               aria-label={`Slide ${i + 1}: ${slideText(slide).slice(0, 80)}`}
               onClick={() => hostRef.current.setCurrentPage(i + 1)}
             >
-              <LazySlide slide={slide} width={slideW} height={slideH} zoom={140 / slideW} root={null} index={i} />
+              <LazySlide
+                slide={slide}
+                width={slideW}
+                height={slideH}
+                zoom={140 / slideW}
+                root={null}
+                index={i}
+              />
               <span className="dsc-thumb-label">{i + 1}</span>
             </button>
           ))}
         </nav>
       )}
-      <div ref={scrollRef} className="dsc-scroll dsc-slides" data-dsc-scroll-container="" tabIndex={0} aria-label={document.name}>
+      <div
+        ref={scrollRef}
+        className="dsc-scroll dsc-slides"
+        data-dsc-scroll-container=""
+        tabIndex={0}
+        aria-label={document.name}
+      >
         <div ref={contentRef} className="dsc-slides-inner" style={{ padding: GAP, gap: GAP }}>
           {deck.slides.map((slide, i) => (
-            <LazySlide key={i} slide={slide} width={slideW} height={slideH} zoom={zoom} root={scrollRef.current} index={i} eager={i < 2} />
+            <LazySlide
+              key={i}
+              slide={slide}
+              width={slideW}
+              height={slideH}
+              zoom={zoom}
+              root={scrollRef.current}
+              index={i}
+              eager={i < 2}
+            />
           ))}
         </div>
       </div>
@@ -179,7 +223,17 @@ function LazySlide({
   );
 }
 
-const SlideView = memo(function SlideView({ slide, width, height, zoom }: { slide: PptxSlide; width: number; height: number; zoom: number }) {
+const SlideView = memo(function SlideView({
+  slide,
+  width,
+  height,
+  zoom,
+}: {
+  slide: PptxSlide;
+  width: number;
+  height: number;
+  zoom: number;
+}) {
   return (
     <div
       className="dsc-slide"
@@ -210,7 +264,14 @@ function box(el: PptxElement): CSSProperties {
   };
 }
 
-const VALIGN: Record<string, CSSProperties['justifyContent']> = { up: 'flex-start', top: 'flex-start', mid: 'center', middle: 'center', down: 'flex-end', bottom: 'flex-end' };
+const VALIGN: Record<string, CSSProperties['justifyContent']> = {
+  up: 'flex-start',
+  top: 'flex-start',
+  mid: 'center',
+  middle: 'center',
+  down: 'flex-end',
+  bottom: 'flex-end',
+};
 
 function SlideElement({ el }: { el: PptxElement }) {
   switch (el.type) {
@@ -230,23 +291,45 @@ function SlideElement({ el }: { el: PptxElement }) {
       return (
         <div className="dsc-slide-el dsc-slide-text" style={css}>
           {usePath && (
-            <svg className="dsc-slide-shape" viewBox={`${el.pathViewBox!.x} ${el.pathViewBox!.y} ${el.pathViewBox!.width} ${el.pathViewBox!.height}`} preserveAspectRatio="none" aria-hidden="true">
+            <svg
+              className="dsc-slide-shape"
+              viewBox={`${el.pathViewBox!.x} ${el.pathViewBox!.y} ${el.pathViewBox!.width} ${el.pathViewBox!.height}`}
+              preserveAspectRatio="none"
+              aria-hidden="true"
+            >
               <path
                 d={el.path}
-                fill={typeof fill.background === 'string' && !fill.background.includes('gradient') ? fill.background : el.fill ? '#ccc' : 'none'}
+                fill={
+                  typeof fill.background === 'string' && !fill.background.includes('gradient')
+                    ? fill.background
+                    : el.fill
+                      ? '#ccc'
+                      : 'none'
+                }
                 stroke={el.borderWidth ? el.borderColor : 'none'}
                 strokeWidth={el.borderWidth ? el.borderWidth : 0}
                 vectorEffect="non-scaling-stroke"
               />
             </svg>
           )}
-          {el.content && <div className="dsc-slide-content" dangerouslySetInnerHTML={{ __html: safeContent(el.content) }} />}
+          {el.content && (
+            <div
+              className="dsc-slide-content"
+              dangerouslySetInnerHTML={{ __html: safeContent(el.content) }}
+            />
+          )}
         </div>
       );
     }
     case 'image':
       return el.base64?.startsWith('data:image/') ? (
-        <img className="dsc-slide-el" style={{ ...box(el), ...borderOf(el), objectFit: 'fill' }} src={el.base64} alt="" draggable={false} />
+        <img
+          className="dsc-slide-el"
+          style={{ ...box(el), ...borderOf(el), objectFit: 'fill' }}
+          src={el.base64}
+          alt=""
+          draggable={false}
+        />
       ) : null;
     case 'math':
       return el.picBase64?.startsWith('data:image/') ? (
@@ -309,14 +392,21 @@ function SlideTable({ el }: { el: PptxElement }) {
         </colgroup>
         <tbody>
           {data.map((row, r) => (
-            <tr key={r} style={{ height: el.rowHeights?.[r] ? `${el.rowHeights[r]}pt` : undefined }}>
+            <tr
+              key={r}
+              style={{ height: el.rowHeights?.[r] ? `${el.rowHeights[r]}pt` : undefined }}
+            >
               {row.map((cell, c) =>
                 cell.hMerge || cell.vMerge ? null : (
                   <td
                     key={c}
                     rowSpan={cell.rowSpan}
                     colSpan={cell.colSpan}
-                    style={{ background: cell.fillColor, color: cell.fontColor, fontWeight: cell.fontBold ? 700 : undefined }}
+                    style={{
+                      background: cell.fillColor,
+                      color: cell.fontColor,
+                      fontWeight: cell.fontBold ? 700 : undefined,
+                    }}
                     dangerouslySetInnerHTML={{ __html: safeContent(cell.text) }}
                   />
                 ),

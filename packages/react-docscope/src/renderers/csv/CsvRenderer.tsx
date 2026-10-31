@@ -6,7 +6,7 @@ import { toPreviewError } from '../../core/errors';
 import { formatBytes } from '../../core/format';
 import { useLatest } from '../shared/hooks';
 import { DataGrid, columnLabel } from '../shared/DataGrid';
-import { delimiterLabel, detectHeader, searchRows } from './csvModel';
+import { delimiterLabel, detectHeader, looksNumeric, searchRows } from './csvModel';
 
 interface ParseState {
   rows: string[][];
@@ -30,10 +30,26 @@ function sampleWidths(rows: string[][], colCount: number): number[] {
 }
 
 const MAX_ROWS = 2_000_000;
+const NUMERIC_STYLE = { justifyContent: 'flex-end' } as const;
 
-export default function CsvRenderer({ document, source, search, view, host, config }: RendererProps) {
+export default function CsvRenderer({
+  document,
+  source,
+  search,
+  view,
+  host,
+  config,
+}: RendererProps) {
   const hostRef = useLatest(host);
-  const [state, setState] = useState<ParseState>({ rows: [], done: false, delimiter: ',', colCount: 0, truncated: false, autoHeader: false, sampleWidths: [] });
+  const [state, setState] = useState<ParseState>({
+    rows: [],
+    done: false,
+    delimiter: ',',
+    colCount: 0,
+    truncated: false,
+    autoHeader: false,
+    sampleWidths: [],
+  });
   const [headerOverride, setHeaderOverride] = useState<boolean | null>(null);
   const rowsRef = useRef<string[][]>([]);
 
@@ -42,7 +58,11 @@ export default function CsvRenderer({ document, source, search, view, host, conf
     let parser: Papa.Parser | null = null;
     rowsRef.current = [];
     const ext = getExtension(document);
-    const configured = config.csv.delimiter ?? (ext === 'tsv' || ext === 'tab' || source.mimeType === 'text/tab-separated-values' ? '\t' : '');
+    const configured =
+      config.csv.delimiter ??
+      (ext === 'tsv' || ext === 'tab' || source.mimeType === 'text/tab-separated-values'
+        ? '\t'
+        : '');
     let colCount = 0;
     let lastFlush = 0;
     let delimiter = configured || ',';
@@ -54,7 +74,8 @@ export default function CsvRenderer({ document, source, search, view, host, conf
       if (cancelled) return;
       const rows = rowsRef.current;
       if (autoHeader === null || rows.length <= 101) autoHeader = detectHeader(rows.slice(0, 50));
-      if (widths === null || rows.length <= 101 || widths.length < colCount) widths = sampleWidths(rows, colCount);
+      if (widths === null || rows.length <= 101 || widths.length < colCount)
+        widths = sampleWidths(rows, colCount);
       setState({ rows, done, delimiter, colCount, truncated, autoHeader, sampleWidths: widths });
     };
 
@@ -98,11 +119,16 @@ export default function CsvRenderer({ document, source, search, view, host, conf
           complete: () => {
             rowsRef.current = rowsRef.current.slice();
             flush(true);
-            if (rowsRef.current.length === 0) hostRef.current.setError('EMPTY_DOCUMENT', 'This CSV file has no rows.');
+            if (rowsRef.current.length === 0)
+              hostRef.current.setError('EMPTY_DOCUMENT', 'This CSV file has no rows.');
             else hostRef.current.setReady();
           },
           error: (err) => {
-            if (!cancelled) hostRef.current.setError('MALFORMED_DOCUMENT', err.message || 'The CSV file could not be parsed.');
+            if (!cancelled)
+              hostRef.current.setError(
+                'MALFORMED_DOCUMENT',
+                err.message || 'The CSV file could not be parsed.',
+              );
           },
         });
       })
@@ -118,7 +144,8 @@ export default function CsvRenderer({ document, source, search, view, host, conf
   }, [source, document, config.csv.delimiter, hostRef]);
 
   const configuredHeader = config.csv.header;
-  const hasHeader = headerOverride ?? (configuredHeader === 'auto' ? state.autoHeader : configuredHeader);
+  const hasHeader =
+    headerOverride ?? (configuredHeader === 'auto' ? state.autoHeader : configuredHeader);
   const startRow = hasHeader ? 1 : 0;
   const header = hasHeader ? state.rows[0] : undefined;
 
@@ -135,7 +162,8 @@ export default function CsvRenderer({ document, source, search, view, host, conf
   const getCell = useCallback(
     (r: number, c: number) => {
       const v = state.rows[r + startRow]?.[c];
-      return v === undefined ? undefined : { text: v };
+      if (v === undefined) return undefined;
+      return looksNumeric(v) ? { text: v, style: NUMERIC_STYLE } : { text: v };
     },
     [state.rows, startRow],
   );
@@ -144,7 +172,10 @@ export default function CsvRenderer({ document, source, search, view, host, conf
     [header],
   );
   const widths = state.sampleWidths;
-  const colWidth = useCallback((c: number) => Math.min(360, Math.max(72, ((widths[c] ?? 4) + 2) * 8 + 16)), [widths]);
+  const colWidth = useCallback(
+    (c: number) => Math.min(360, Math.max(72, ((widths[c] ?? 4) + 2) * 8 + 16)),
+    [widths],
+  );
 
   if (!state.rows.length) return null;
   const dataRows = Math.max(0, state.rows.length - startRow);
@@ -163,13 +194,18 @@ export default function CsvRenderer({ document, source, search, view, host, conf
       />
       <div className="dsc-statusbar" aria-live="polite">
         <span>
-          {dataRows.toLocaleString()} rows · {state.colCount} columns · {delimiterLabel(state.delimiter)} delimited
+          {dataRows.toLocaleString()} rows · {state.colCount} columns ·{' '}
+          {delimiterLabel(state.delimiter)} delimited
           {source.size ? ` · ${formatBytes(source.size)}` : ''}
           {!state.done && ' · loading…'}
           {state.truncated && ` · showing first ${MAX_ROWS.toLocaleString()} rows`}
         </span>
         <label className="dsc-checkbox">
-          <input type="checkbox" checked={hasHeader} onChange={(e) => setHeaderOverride(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={hasHeader}
+            onChange={(e) => setHeaderOverride(e.target.checked)}
+          />
           First row is header
         </label>
       </div>

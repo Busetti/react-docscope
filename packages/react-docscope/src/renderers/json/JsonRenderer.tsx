@@ -19,7 +19,9 @@ import {
   type JsonRow,
 } from './jsonModel';
 
-type Parsed = { ok: true; value: unknown; pretty: string } | { ok: false; error: ReturnType<typeof describeJsonError> };
+type Parsed =
+  | { ok: true; value: unknown; pretty: string }
+  | { ok: false; error: ReturnType<typeof describeJsonError> };
 
 export default function JsonRenderer({ document, source, search, view, host }: RendererProps) {
   const { value: text, error } = useAsync(() => source.getText(), [source]);
@@ -49,7 +51,8 @@ export default function JsonRenderer({ document, source, search, view, host }: R
         {!parsed.ok && (
           <div className="dsc-inline-error" role="alert">
             <strong>Invalid JSON.</strong> {parsed.error.message}
-            {parsed.error.line !== undefined && ` (line ${parsed.error.line}, column ${parsed.error.column})`}
+            {parsed.error.line !== undefined &&
+              ` (line ${parsed.error.line}, column ${parsed.error.column})`}
           </div>
         )}
         <RawJson
@@ -62,7 +65,15 @@ export default function JsonRenderer({ document, source, search, view, host }: R
       </div>
     );
   }
-  return <JsonTree value={parsed.value} search={search} host={host} zoom={view.zoom} label={document.name} />;
+  return (
+    <JsonTree
+      value={parsed.value}
+      search={search}
+      host={host}
+      zoom={view.zoom}
+      label={document.name}
+    />
+  );
 }
 
 function RawJson({
@@ -113,7 +124,10 @@ function JsonTree({
   const [copied, setCopied] = useState<string | null>(null);
   const hostRef = useLatest(host);
 
-  const matches = useMemo(() => searchJson(index, search.query, search.caseSensitive), [index, search.query, search.caseSensitive]);
+  const matches = useMemo(
+    () => searchJson(index, search.query, search.caseSensitive),
+    [index, search.query, search.caseSensitive],
+  );
   const matchSet = useMemo(() => new Set(matches), [matches]);
   const activeId = search.activeIndex >= 0 ? matches[search.activeIndex] : undefined;
 
@@ -163,7 +177,11 @@ function JsonTree({
               <span className="dsc-tok-punct">:&nbsp;</span>
             </>
           )}
-          <span className={`dsc-tok-${n.kind === 'object' || n.kind === 'array' ? 'meta' : n.kind}`}>{previewOf(n)}</span>
+          <span
+            className={`dsc-tok-${n.kind === 'object' || n.kind === 'array' ? 'meta' : n.kind}`}
+          >
+            {previewOf(n)}
+          </span>
           <button
             type="button"
             className="dsc-tree-action"
@@ -175,7 +193,11 @@ function JsonTree({
               void onCopy(n.id);
             }}
           >
-            {copied === n.id ? <Check size="1em" aria-hidden="true" /> : <Copy size="1em" aria-hidden="true" />}
+            {copied === n.id ? (
+              <Check size="1em" aria-hidden="true" />
+            ) : (
+              <Copy size="1em" aria-hidden="true" />
+            )}
           </button>
         </>
       );
@@ -198,13 +220,25 @@ function JsonTree({
       />
       <div className="dsc-statusbar" aria-live="polite">
         <span className="dsc-statusbar-path">{selected ?? '$'}</span>
-        <button type="button" className="dsc-link-button" onClick={() => void onCopy(selected ?? '$')}>
+        <button
+          type="button"
+          className="dsc-link-button"
+          onClick={() => void onCopy(selected ?? '$')}
+        >
           {copied === (selected ?? '$') ? 'Copied' : 'Copy path'}
         </button>
-        <button type="button" className="dsc-link-button" onClick={() => setExpanded(new Set(index.keys()))}>
+        <button
+          type="button"
+          className="dsc-link-button"
+          onClick={() => setExpanded(new Set(index.keys()))}
+        >
           Expand all
         </button>
-        <button type="button" className="dsc-link-button" onClick={() => setExpanded(new Set(['$']))}>
+        <button
+          type="button"
+          className="dsc-link-button"
+          onClick={() => setExpanded(new Set(['$']))}
+        >
           Collapse all
         </button>
       </div>

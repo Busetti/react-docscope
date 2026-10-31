@@ -92,16 +92,19 @@ export const DEFAULT_CONFIG: ResolvedPreviewConfig = {
   labels: DEFAULT_LABELS,
 };
 
-function resolveShortcuts(input: ShortcutMap | false | undefined): Record<ShortcutAction, string[]> {
+function resolveShortcuts(
+  input: ShortcutMap | false | undefined,
+): Record<ShortcutAction, string[]> {
   if (input === false) {
-    return Object.fromEntries(Object.keys(DEFAULT_SHORTCUTS).map((k) => [k, []])) as unknown as Record<
-      ShortcutAction,
-      string[]
-    >;
+    return Object.fromEntries(
+      Object.keys(DEFAULT_SHORTCUTS).map((k) => [k, []]),
+    ) as unknown as Record<ShortcutAction, string[]>;
   }
   const result = { ...DEFAULT_SHORTCUTS };
   if (input) {
-    for (const [action, combos] of Object.entries(input) as Array<[ShortcutAction, string[] | false]>) {
+    for (const [action, combos] of Object.entries(input) as Array<
+      [ShortcutAction, string[] | false]
+    >) {
       if (!(action in DEFAULT_SHORTCUTS)) continue;
       result[action] = combos === false ? [] : [...combos];
     }
@@ -110,7 +113,9 @@ function resolveShortcuts(input: ShortcutMap | false | undefined): Record<Shortc
 }
 
 function clampNumber(value: unknown, fallback: number, min = -Infinity, max = Infinity): number {
-  return typeof value === 'number' && Number.isFinite(value) ? Math.min(max, Math.max(min, value)) : fallback;
+  return typeof value === 'number' && Number.isFinite(value)
+    ? Math.min(max, Math.max(min, value))
+    : fallback;
 }
 
 /**
@@ -135,8 +140,12 @@ export function resolveConfig(...configs: Array<PreviewConfig | undefined>): Res
   const d = DEFAULT_CONFIG;
   const zoomMin = clampNumber(merged.zoom?.min, d.zoom.min, 0.01, 100);
   const zoomMax = clampNumber(merged.zoom?.max, d.zoom.max, zoomMin, 100);
-  const theme = merged.theme === 'light' || merged.theme === 'dark' || merged.theme === 'system' ? merged.theme : d.theme;
-  const prefetch = merged.prefetch === 'none' || merged.prefetch === 'adjacent' ? merged.prefetch : d.prefetch;
+  const theme =
+    merged.theme === 'light' || merged.theme === 'dark' || merged.theme === 'system'
+      ? merged.theme
+      : d.theme;
+  const prefetch =
+    merged.prefetch === 'none' || merged.prefetch === 'adjacent' ? merged.prefetch : d.prefetch;
   const scrollMode =
     merged.pdf?.scrollMode === 'single' || merged.pdf?.scrollMode === 'continuous'
       ? merged.pdf.scrollMode
@@ -165,7 +174,9 @@ export function resolveConfig(...configs: Array<PreviewConfig | undefined>): Res
       max: zoomMax,
       default: clampNumber(merged.zoom?.default, d.zoom.default, zoomMin, zoomMax),
       step: clampNumber(merged.zoom?.step, d.zoom.step, 0.01, 10),
-      defaultFit: ['none', 'width', 'page', 'original'].includes(defaultFit) ? defaultFit : d.zoom.defaultFit,
+      defaultFit: ['none', 'width', 'page', 'original'].includes(defaultFit)
+        ? defaultFit
+        : d.zoom.defaultFit,
     },
     pdf: {
       scrollMode,
@@ -173,7 +184,9 @@ export function resolveConfig(...configs: Array<PreviewConfig | undefined>): Res
       thumbnails: merged.pdf?.thumbnails ?? d.pdf.thumbnails,
       ...(merged.pdf?.workerSrc ? { workerSrc: merged.pdf.workerSrc } : {}),
       ...(merged.pdf?.cMapUrl ? { cMapUrl: merged.pdf.cMapUrl } : {}),
-      ...(merged.pdf?.standardFontDataUrl ? { standardFontDataUrl: merged.pdf.standardFontDataUrl } : {}),
+      ...(merged.pdf?.standardFontDataUrl
+        ? { standardFontDataUrl: merged.pdf.standardFontDataUrl }
+        : {}),
       ...(merged.pdf?.wasmUrl ? { wasmUrl: merged.pdf.wasmUrl } : {}),
     },
     csv: {

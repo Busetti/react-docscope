@@ -156,7 +156,11 @@ export function TreeView<R extends FlatTreeRow>({
                     onToggle(row);
                   }}
                 >
-                  <ChevronRight size="1em" aria-hidden="true" data-expanded={row.expanded ? 'true' : 'false'} />
+                  <ChevronRight
+                    size="1em"
+                    aria-hidden="true"
+                    data-expanded={row.expanded ? 'true' : 'false'}
+                  />
                 </button>
               ) : (
                 <span className="dsc-tree-toggle-spacer" />

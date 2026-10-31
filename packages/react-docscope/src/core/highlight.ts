@@ -26,7 +26,12 @@ export function collectTextNodes(root: Node): Text[] {
 }
 
 /** Finds `query` in the text content of `root` and returns one Range per match. */
-export function findDomMatches(root: Node, query: string, caseSensitive = false, limit = 5000): Range[] {
+export function findDomMatches(
+  root: Node,
+  query: string,
+  caseSensitive = false,
+  limit = 5000,
+): Range[] {
   if (!query.trim()) return [];
   const nodes = collectTextNodes(root);
   const offsets: number[] = [];
@@ -61,7 +66,8 @@ interface HighlightRegistryLike {
 
 function getHighlightRegistry(): HighlightRegistryLike | null {
   const css = (globalThis as { CSS?: { highlights?: HighlightRegistryLike } }).CSS;
-  const Ctor = (globalThis as { Highlight?: new (...r: AbstractRange[]) => HighlightLike }).Highlight;
+  const Ctor = (globalThis as { Highlight?: new (...r: AbstractRange[]) => HighlightLike })
+    .Highlight;
   return css?.highlights && Ctor ? css.highlights : null;
 }
 
@@ -88,7 +94,9 @@ class SearchHighlighter {
   private apply(): void {
     const registry = getHighlightRegistry();
     if (!registry) return;
-    const Ctor = (globalThis as unknown as { Highlight: new (...r: AbstractRange[]) => HighlightLike }).Highlight;
+    const Ctor = (
+      globalThis as unknown as { Highlight: new (...r: AbstractRange[]) => HighlightLike }
+    ).Highlight;
     const all = new Ctor();
     const active = new Ctor();
     for (const { ranges, active: a } of this.owners.values()) {
@@ -164,7 +172,8 @@ function splitText(node: Text, start: number, end: number): Text {
 
 /** Scrolls a scroll container so that `range` is visible (centred vertically). */
 export function scrollRangeIntoView(range: Range, container: HTMLElement | null): void {
-  const rect = typeof range.getBoundingClientRect === 'function' ? range.getBoundingClientRect() : null;
+  const rect =
+    typeof range.getBoundingClientRect === 'function' ? range.getBoundingClientRect() : null;
   if (!container || !rect || (rect.width === 0 && rect.height === 0)) {
     const el = range.startContainer.parentElement;
     el?.scrollIntoView?.({ block: 'center', inline: 'nearest' });

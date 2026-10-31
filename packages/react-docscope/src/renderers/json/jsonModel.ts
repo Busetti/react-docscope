@@ -37,9 +37,13 @@ export function kindOf(value: unknown): JsonKind {
 /** Builds an id → node index. Ids are JSONPath-like (`$.owners[0].name`). */
 export function indexJson(root: unknown): Map<string, JsonNode> {
   const map = new Map<string, JsonNode>();
-  const stack: Array<{ id: string; parentId: string | null; depth: number; key: string | number | null; value: unknown }> = [
-    { id: '$', parentId: null, depth: 0, key: null, value: root },
-  ];
+  const stack: Array<{
+    id: string;
+    parentId: string | null;
+    depth: number;
+    key: string | number | null;
+    value: unknown;
+  }> = [{ id: '$', parentId: null, depth: 0, key: null, value: root }];
   while (stack.length) {
     const item = stack.pop()!;
     const kind = kindOf(item.value);
@@ -53,7 +57,13 @@ export function indexJson(root: unknown): Map<string, JsonNode> {
       for (const [k] of entries) node.children.push(childPath(item.id, k));
       for (let i = entries.length - 1; i >= 0; i -= 1) {
         const [k, v] = entries[i]!;
-        stack.push({ id: childPath(item.id, k), parentId: item.id, depth: item.depth + 1, key: k, value: v });
+        stack.push({
+          id: childPath(item.id, k),
+          parentId: item.id,
+          depth: item.depth + 1,
+          key: k,
+          value: v,
+        });
       }
     }
   }
@@ -76,14 +86,28 @@ export function flattenJson(index: Map<string, JsonNode>, expanded: Set<string>)
     const node = stack.pop()!;
     const hasChildren = node.children.length > 0;
     const isOpen = hasChildren && expanded.has(node.id);
-    rows.push({ id: node.id, depth: node.depth, hasChildren, expanded: isOpen, parentId: node.parentId, node });
-    if (isOpen) for (let i = node.children.length - 1; i >= 0; i -= 1) stack.push(index.get(node.children[i]!)!);
+    rows.push({
+      id: node.id,
+      depth: node.depth,
+      hasChildren,
+      expanded: isOpen,
+      parentId: node.parentId,
+      node,
+    });
+    if (isOpen)
+      for (let i = node.children.length - 1; i >= 0; i -= 1)
+        stack.push(index.get(node.children[i]!)!);
   }
   return rows;
 }
 
 /** Ids of nodes whose key or primitive value matches, in document order. */
-export function searchJson(index: Map<string, JsonNode>, query: string, caseSensitive: boolean, limit = 5000): string[] {
+export function searchJson(
+  index: Map<string, JsonNode>,
+  query: string,
+  caseSensitive: boolean,
+  limit = 5000,
+): string[] {
   if (!query.trim()) return [];
   const out: string[] = [];
   const root = index.get('$');
@@ -92,7 +116,10 @@ export function searchJson(index: Map<string, JsonNode>, query: string, caseSens
   while (stack.length && out.length < limit) {
     const n = stack.pop()!;
     const keyHit = n.key !== null && textIncludes(String(n.key), query, caseSensitive);
-    const valueHit = n.kind !== 'object' && n.kind !== 'array' && textIncludes(String(n.value), query, caseSensitive);
+    const valueHit =
+      n.kind !== 'object' &&
+      n.kind !== 'array' &&
+      textIncludes(String(n.value), query, caseSensitive);
     if (keyHit || valueHit) out.push(n.id);
     for (let i = n.children.length - 1; i >= 0; i -= 1) stack.push(index.get(n.children[i]!)!);
   }
@@ -111,13 +138,17 @@ export function ancestorsOf(index: Map<string, JsonNode>, id: string): string[] 
 
 export function previewOf(node: JsonNode): string {
   if (node.kind === 'array') return `Array(${node.children.length})`;
-  if (node.kind === 'object') return `{${node.children.length} ${node.children.length === 1 ? 'key' : 'keys'}}`;
+  if (node.kind === 'object')
+    return `{${node.children.length} ${node.children.length === 1 ? 'key' : 'keys'}}`;
   if (node.kind === 'string') return JSON.stringify(node.value);
   return String(node.value);
 }
 
 /** Converts a JSON.parse error into a human message with line / column. */
-export function describeJsonError(error: unknown, text: string): { message: string; line?: number; column?: number } {
+export function describeJsonError(
+  error: unknown,
+  text: string,
+): { message: string; line?: number; column?: number } {
   const msg = error instanceof Error ? error.message : String(error);
   const pos = /position (\d+)/i.exec(msg);
   const lc = /line (\d+) column (\d+)/i.exec(msg);

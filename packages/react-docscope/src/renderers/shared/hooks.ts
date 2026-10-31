@@ -4,13 +4,16 @@ import { highlightDom } from '../../core/highlight';
 import { findTextMatches, type TextMatch } from '../../core/search';
 import type { RendererHost, SearchState } from '../../types';
 
-export const useIsomorphicLayoutEffect = typeof window !== 'undefined' ? useLayoutEffect : useEffect;
+export const useIsomorphicLayoutEffect =
+  typeof window !== 'undefined' ? useLayoutEffect : useEffect;
 
 /**
  * Tracks an element's content box size. Re-subscribes automatically when the
  * ref starts pointing to a different element (e.g. after async content loads).
  */
-export function useElementSize<T extends HTMLElement>(ref: RefObject<T | null>): { width: number; height: number } {
+export function useElementSize<T extends HTMLElement>(
+  ref: RefObject<T | null>,
+): { width: number; height: number } {
   const [size, setSize] = useState({ width: 0, height: 0 });
   const observed = useRef<{ el: T | null; ro: ResizeObserver | null }>({ el: null, ro: null });
   useIsomorphicLayoutEffect(() => {
@@ -68,13 +71,30 @@ export function useDomSearch(
       hostRef.current.setSearchResults(0);
       return;
     }
-    const { count, cleanup } = highlightDom(owner, root, search.query, search.caseSensitive, search.activeIndex, {
-      allowMutation,
-      scrollContainer: scrollRef.current,
-    });
+    const { count, cleanup } = highlightDom(
+      owner,
+      root,
+      search.query,
+      search.caseSensitive,
+      search.activeIndex,
+      {
+        allowMutation,
+        scrollContainer: scrollRef.current,
+      },
+    );
     hostRef.current.setSearchResults(count);
     return cleanup;
-  }, [contentRef, scrollRef, search.query, search.caseSensitive, search.activeIndex, version, allowMutation, owner, hostRef]);
+  }, [
+    contentRef,
+    scrollRef,
+    search.query,
+    search.caseSensitive,
+    search.activeIndex,
+    version,
+    allowMutation,
+    owner,
+    hostRef,
+  ]);
 }
 
 export interface LineMatch extends TextMatch {
@@ -88,7 +108,12 @@ export function useLineSearch(lines: string[], search: SearchState, host: Render
     if (!search.query.trim()) return [];
     const out: LineMatch[] = [];
     for (let i = 0; i < lines.length; i += 1) {
-      const ms = findTextMatches(lines[i]!, search.query, search.caseSensitive, 10_000 - out.length);
+      const ms = findTextMatches(
+        lines[i]!,
+        search.query,
+        search.caseSensitive,
+        10_000 - out.length,
+      );
       for (const m of ms) out.push({ ...m, line: i });
       if (out.length >= 10_000) break;
     }
@@ -125,7 +150,11 @@ export function useAsync<T>(
   });
   useEffect(() => {
     const ctrl = new AbortController();
-    setState((s) => (s.loading && s.value === undefined && s.error === undefined ? s : { value: undefined, error: undefined, loading: true }));
+    setState((s) =>
+      s.loading && s.value === undefined && s.error === undefined
+        ? s
+        : { value: undefined, error: undefined, loading: true },
+    );
     factory(ctrl.signal).then(
       (value) => {
         if (!ctrl.signal.aborted) setState({ value, error: undefined, loading: false });
@@ -149,7 +178,10 @@ export function useWheelZoom(
 ): void {
   const zoomRef = useLatest(zoom);
   const hostRef = useLatest(host);
-  const bound = useRef<{ el: HTMLElement | null; off: (() => void) | null }>({ el: null, off: null });
+  const bound = useRef<{ el: HTMLElement | null; off: (() => void) | null }>({
+    el: null,
+    off: null,
+  });
   useEffect(() => {
     const el = ref.current;
     if (el === bound.current.el) return;

@@ -1,9 +1,10 @@
-import { memo, useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import type { PDFDocumentProxy, PDFPageProxy, PageViewport } from 'pdfjs-dist';
 import { useVirtualizer } from '@tanstack/react-virtual';
 import type { PreviewErrorCode, RendererProps } from '../../types';
 import { errorFromStatus, isAbortError } from '../../core/errors';
 import { useElementSize, useLatest, useWheelZoom } from '../shared/hooks';
+import { collectTextNodes } from '../../core/highlight';
 import { enableMainThreadFallback, ensurePdfWorker } from './pdfWorker';
 import {
   buildPageText,
@@ -27,22 +28,39 @@ interface PageSize {
 function classifyPdfError(error: unknown): { code: PreviewErrorCode; message: string } {
   const e = error as { name?: string; status?: number; message?: string };
   if (e?.name === 'PasswordException') {
-    return { code: 'RENDER_FAILED', message: 'This PDF is password protected and cannot be previewed.' };
+    return {
+      code: 'RENDER_FAILED',
+      message: 'This PDF is password protected and cannot be previewed.',
+    };
   }
   if (e?.name === 'InvalidPDFException' || /invalid pdf|corrupt/i.test(e?.message ?? '')) {
-    return { code: 'MALFORMED_DOCUMENT', message: 'This PDF appears to be damaged or is not a valid PDF file.' };
+    return {
+      code: 'MALFORMED_DOCUMENT',
+      message: 'This PDF appears to be damaged or is not a valid PDF file.',
+    };
   }
   if (typeof e?.status === 'number' && e.status >= 400) {
     const mapped = errorFromStatus(e.status);
     return { code: mapped.code, message: mapped.message };
   }
-  if (e?.name === 'ResponseException' || e?.name === 'UnexpectedResponseException' || e?.name === 'MissingPDFException') {
+  if (
+    e?.name === 'ResponseException' ||
+    e?.name === 'UnexpectedResponseException' ||
+    e?.name === 'MissingPDFException'
+  ) {
     return { code: 'FETCH_FAILED', message: 'The PDF could not be downloaded.' };
   }
   return { code: 'RENDER_FAILED', message: 'The PDF could not be displayed.' };
 }
 
-export default function PdfRenderer({ document, source, view, search, host, config }: RendererProps) {
+export default function PdfRenderer({
+  document,
+  source,
+  view,
+  search,
+  host,
+  config,
+}: RendererProps) {
   const hostRef = useLatest(host);
   const scrollRef = useRef<HTMLDivElement>(null);
   const container = useElementSize(scrollRef);
@@ -61,7 +79,9 @@ export default function PdfRenderer({ document, source, view, search, host, conf
         enableXfa: false,
         disableAutoFetch: true,
         ...(config.pdf.cMapUrl ? { cMapUrl: config.pdf.cMapUrl, cMapPacked: true } : {}),
-        ...(config.pdf.standardFontDataUrl ? { standardFontDataUrl: config.pdf.standardFontDataUrl } : {}),
+        ...(config.pdf.standardFontDataUrl
+          ? { standardFontDataUrl: config.pdf.standardFontDataUrl }
+          : {}),
         ...(config.pdf.wasmUrl ? { wasmUrl: config.pdf.wasmUrl } : {}),
       };
       const open = async () => {
@@ -92,7 +112,9 @@ export default function PdfRenderer({ document, source, view, search, host, conf
       const first = await doc.getPage(1);
       const vp = first.getViewport({ scale: 1 });
       if (cancelled) return;
-      setSizes(Array.from({ length: doc.numPages }, () => ({ width: vp.width, height: vp.height })));
+      setSizes(
+        Array.from({ length: doc.numPages }, () => ({ width: vp.width, height: vp.height })),
+      );
       setPdf({ lib, doc });
       hostRef.current.setPageCount(doc.numPages);
     })().catch((error: unknown) => {
@@ -105,12 +127,23 @@ export default function PdfRenderer({ document, source, view, search, host, conf
       // Destroying the loading task also destroys the document and its worker-side resources.
       void (task as { destroy(): Promise<void> } | null)?.destroy();
     };
-  }, [source, config.pdf.workerSrc, config.pdf.cMapUrl, config.pdf.standardFontDataUrl, config.pdf.wasmUrl, hostRef]);
+  }, [
+    source,
+    config.pdf.workerSrc,
+    config.pdf.cMapUrl,
+    config.pdf.standardFontDataUrl,
+    config.pdf.wasmUrl,
+    hostRef,
+  ]);
 
   const onPageSize = useCallback((index: number, size: PageSize) => {
     setSizes((prev) => {
       const cur = prev[index];
-      if (!cur || (Math.abs(cur.width - size.width) < 0.5 && Math.abs(cur.height - size.height) < 0.5)) return prev;
+      if (
+        !cur ||
+        (Math.abs(cur.width - size.width) < 0.5 && Math.abs(cur.height - size.height) < 0.5)
+      )
+        return prev;
       const next = prev.slice();
       next[index] = size;
       return next;
@@ -127,7 +160,11 @@ export default function PdfRenderer({ document, source, view, search, host, conf
   const availW = Math.max(50, container.width - GAP * 2);
   const availH = Math.max(50, container.height - GAP * 2);
   const fitScale =
-    view.fitMode === 'width' ? availW / refW : view.fitMode === 'page' ? Math.min(availW / refW, availH / refH) : null;
+    view.fitMode === 'width'
+      ? availW / refW
+      : view.fitMode === 'page'
+        ? Math.min(availW / refW, availH / refH)
+        : null;
   const scale = Math.max(0.05, Math.min(10, fitScale ?? view.zoom));
   useEffect(() => {
     if (pdf) hostRef.current.setEffectiveZoom(scale);
@@ -238,7 +275,10 @@ export default function PdfRenderer({ document, source, view, search, host, conf
   }, [pdf, wantsText, extracted]);
 
   const matches = useMemo<PdfMatch[]>(
-    () => (pdf ? findPdfMatches(textCache.current, pdf.doc.numPages, search.query, search.caseSensitive) : []),
+    () =>
+      pdf
+        ? findPdfMatches(textCache.current, pdf.doc.numPages, search.query, search.caseSensitive)
+        : [],
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [pdf, search.query, search.caseSensitive, extracted],
   );
@@ -273,7 +313,9 @@ export default function PdfRenderer({ document, source, view, search, host, conf
     const yFromTop = rotated ? rect[0]! : size.height - rect[3]!;
     lastReportedPage.current = active.page;
     hostRef.current.setCurrentPage(active.page);
-    el.scrollTo({ top: Math.max(0, (offsets[active.page - 1] ?? 0) + yFromTop * scale - el.clientHeight / 2) });
+    el.scrollTo({
+      top: Math.max(0, (offsets[active.page - 1] ?? 0) + yFromTop * scale - el.clientHeight / 2),
+    });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [active?.page, active?.start, search.activeIndex]);
 
@@ -290,7 +332,13 @@ export default function PdfRenderer({ document, source, view, search, host, conf
   return (
     <div className="dsc-paged">
       {view.showThumbnails && pdf && (
-        <PdfThumbnails doc={pdf.doc} sizes={sizes} current={view.page} rotation={view.rotation} onSelect={(p) => hostRef.current.setCurrentPage(p)} />
+        <PdfThumbnails
+          doc={pdf.doc}
+          sizes={sizes}
+          current={view.page}
+          rotation={view.rotation}
+          onSelect={(p) => hostRef.current.setCurrentPage(p)}
+        />
       )}
       <div
         ref={scrollRef}
@@ -307,22 +355,23 @@ export default function PdfRenderer({ document, source, view, search, host, conf
             width: Math.max(maxWidth + GAP * 2, 0),
           }}
         >
-          {pdf && pagesToRender.map((i) => (
-            <PdfPage
-              key={i}
-              doc={pdf.doc}
-              lib={pdf.lib}
-              index={i}
-              top={single ? GAP : offsets[i]!}
-              scale={scale}
-              rotation={view.rotation}
-              estimated={sizes[i]!}
-              onSize={onPageSize}
-              pageText={textCache.current.get(i + 1)}
-              matches={matchesByPage.get(i + 1)}
-              activeIndex={search.activeIndex}
-            />
-          ))}
+          {pdf &&
+            pagesToRender.map((i) => (
+              <PdfPage
+                key={i}
+                doc={pdf.doc}
+                lib={pdf.lib}
+                index={i}
+                top={single ? GAP : offsets[i]!}
+                scale={scale}
+                rotation={view.rotation}
+                estimated={sizes[i]!}
+                onSize={onPageSize}
+                pageText={textCache.current.get(i + 1)}
+                matches={matchesByPage.get(i + 1)}
+                activeIndex={search.activeIndex}
+              />
+            ))}
         </div>
       </div>
     </div>
@@ -343,12 +392,26 @@ interface PdfPageProps {
   activeIndex: number;
 }
 
-const PdfPage = memo(function PdfPage({ doc, lib, index, top, scale, rotation, estimated, onSize, pageText, matches, activeIndex }: PdfPageProps) {
+const PdfPage = memo(function PdfPage({
+  doc,
+  lib,
+  index,
+  top,
+  scale,
+  rotation,
+  estimated,
+  onSize,
+  pageText,
+  matches,
+  activeIndex,
+}: PdfPageProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
   const [page, setPage] = useState<PDFPageProxy | null>(null);
   const [viewport, setViewport] = useState<PageViewport | null>(null);
   const [rendered, setRendered] = useState(false);
+  const [textReady, setTextReady] = useState(0);
+  const pageRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -377,7 +440,11 @@ const PdfPage = memo(function PdfPage({ doc, lib, index, top, scale, rotation, e
     const textDiv = textRef.current;
     if (!canvas || !textDiv) return;
     let cancelled = false;
-    const dpr = canvasScale(vp.width, vp.height, typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1);
+    const dpr = canvasScale(
+      vp.width,
+      vp.height,
+      typeof window !== 'undefined' ? window.devicePixelRatio || 1 : 1,
+    );
     canvas.width = Math.floor(vp.width * dpr);
     canvas.height = Math.floor(vp.height * dpr);
     canvas.style.width = `${Math.floor(vp.width)}px`;
@@ -403,8 +470,14 @@ const PdfPage = memo(function PdfPage({ doc, lib, index, top, scale, rotation, e
       .getTextContent()
       .then((content) => {
         if (cancelled) return;
-        textLayer = new lib.TextLayer({ textContentSource: content, container: textDiv, viewport: vp });
-        return textLayer.render();
+        textLayer = new lib.TextLayer({
+          textContentSource: content,
+          container: textDiv,
+          viewport: vp,
+        });
+        return textLayer.render().then(() => {
+          if (!cancelled) setTextReady((n) => n + 1);
+        });
       })
       .catch(() => undefined);
     return () => {
@@ -418,8 +491,56 @@ const PdfPage = memo(function PdfPage({ doc, lib, index, top, scale, rotation, e
   const width = viewport?.width ?? (rotated ? estimated.height : estimated.width) * scale;
   const height = viewport?.height ?? (rotated ? estimated.width : estimated.height) * scale;
 
+  // Precise highlight boxes measured from the rendered text layer (matches the
+  // real glyph widths). Falls back to geometry from the text content items.
+  const [measured, setMeasured] = useState<Array<{
+    key: string;
+    active: boolean;
+    left: number;
+    top: number;
+    width: number;
+    height: number;
+  }> | null>(null);
+  useLayoutEffect(() => {
+    const textDiv = textRef.current;
+    const pageEl = pageRef.current;
+    if (!textReady || !textDiv || !pageEl || !pageText || !matches?.length) {
+      setMeasured(null);
+      return;
+    }
+    const nodes = collectTextNodes(textDiv);
+    const items = pageText.items.filter((i) => i.str.length > 0);
+    if (nodes.length !== items.length || nodes.some((n, k) => n.nodeValue !== items[k]!.str)) {
+      setMeasured(null);
+      return;
+    }
+    const box = pageEl.getBoundingClientRect();
+    const range = document.createRange();
+    const out: NonNullable<typeof measured> = [];
+    for (const m of matches) {
+      items.forEach((item, k) => {
+        if (item.end <= m.start || item.start >= m.end) return;
+        range.setStart(nodes[k]!, Math.max(m.start, item.start) - item.start);
+        range.setEnd(nodes[k]!, Math.min(m.end, item.end) - item.start);
+        Array.from(range.getClientRects()).forEach((r, j) => {
+          if (r.width === 0 && r.height === 0) return;
+          out.push({
+            key: `${m.index}-${k}-${j}`,
+            active: m.index === activeIndex,
+            left: r.left - box.left,
+            top: r.top - box.top,
+            width: r.width,
+            height: r.height,
+          });
+        });
+      });
+    }
+    setMeasured(out.length ? out : null);
+  }, [textReady, pageText, matches, activeIndex]);
+
   const highlights =
-    viewport && pageText && matches
+    measured ??
+    (viewport && pageText && matches
       ? matches.flatMap((m) =>
           matchRects(pageText, m.start, m.end).map((r, k) => ({
             key: `${m.index}-${k}`,
@@ -430,10 +551,11 @@ const PdfPage = memo(function PdfPage({ doc, lib, index, top, scale, rotation, e
             ] as number[]),
           })),
         )
-      : [];
+      : []);
 
   return (
     <div
+      ref={pageRef}
       className="dsc-pdf-page"
       data-page={index + 1}
       role="region"
@@ -498,7 +620,13 @@ function PdfThumbnails({
             className="dsc-thumb"
             aria-label={`Page ${item.index + 1}`}
             aria-current={current === item.index + 1 ? 'true' : undefined}
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, transform: `translateY(${item.start}px)` }}
+            style={{
+              position: 'absolute',
+              top: 0,
+              left: 0,
+              right: 0,
+              transform: `translateY(${item.start}px)`,
+            }}
             onClick={() => onSelect(item.index + 1)}
           >
             <PdfThumb doc={doc} index={item.index} rotation={rotation} />
@@ -510,7 +638,15 @@ function PdfThumbnails({
   );
 }
 
-function PdfThumb({ doc, index, rotation }: { doc: PDFDocumentProxy; index: number; rotation: number }) {
+function PdfThumb({
+  doc,
+  index,
+  rotation,
+}: {
+  doc: PDFDocumentProxy;
+  index: number;
+  rotation: number;
+}) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   useEffect(() => {
     let cancelled = false;
@@ -520,7 +656,10 @@ function PdfThumb({ doc, index, rotation }: { doc: PDFDocumentProxy; index: numb
         const canvas = canvasRef.current;
         if (cancelled || !canvas) return;
         const base = page.getViewport({ scale: 1, rotation: (page.rotate + rotation) % 360 });
-        const vp = page.getViewport({ scale: THUMB_W / base.width, rotation: (page.rotate + rotation) % 360 });
+        const vp = page.getViewport({
+          scale: THUMB_W / base.width,
+          rotation: (page.rotate + rotation) % 360,
+        });
         canvas.width = Math.floor(vp.width);
         canvas.height = Math.floor(vp.height);
         task = page.render({ canvas, viewport: vp } as never) as unknown as typeof task;

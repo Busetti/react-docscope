@@ -1,6 +1,7 @@
 import type { Token } from './TextLines';
 
-const JSON_TOKEN = /("(?:[^"\\]|\\.)*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|\b(true|false)\b|\b(null)\b|([{}[\],])/g;
+const JSON_TOKEN =
+  /("(?:[^"\\]|\\.)*")(\s*:)?|(-?\d+(?:\.\d+)?(?:[eE][+-]?\d+)?)|\b(true|false)\b|\b(null)\b|([{}[\],])/g;
 
 /** Line-level JSON tokenizer for the raw view (keys, strings, numbers, literals). */
 export function tokenizeJsonLine(line: string): Token[] {
@@ -23,7 +24,8 @@ export function tokenizeJsonLine(line: string): Token[] {
   return tokens;
 }
 
-const XML_TOKEN = /(<!--[\s\S]*?(?:-->|$))|(<!\[CDATA\[[\s\S]*?(?:\]\]>|$))|(<\?[\s\S]*?(?:\?>|$))|(<\/?)([\w:.-]+)|(\/?>)|([\w:.-]+)(=)("[^"]*"|'[^']*')/g;
+const XML_TOKEN =
+  /(<!--[\s\S]*?(?:-->|$))|(<!\[CDATA\[[\s\S]*?(?:\]\]>|$))|(<\?[\s\S]*?(?:\?>|$))|(<\/?)([\w:.-]+)|(\/?>)|([\w:.-]+)(=)("[^"]*"|'[^']*')/g;
 
 /** Line-level XML tokenizer for the raw view. */
 export function tokenizeXmlLine(line: string): Token[] {

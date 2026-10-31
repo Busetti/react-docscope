@@ -74,7 +74,11 @@ describe('xlsx reader', () => {
     ]);
     const budget = wb.readSheet(0);
     expect(budget.rows.get(0)!.get(0)!.text).toBe('FY2026 Budget');
-    expect(budget.rows.get(0)!.get(0)!.style).toMatchObject({ fontWeight: 700, color: '#FFFFFF', backgroundColor: '#1E3A8A' });
+    expect(budget.rows.get(0)!.get(0)!.style).toMatchObject({
+      fontWeight: 700,
+      color: '#FFFFFF',
+      backgroundColor: '#1E3A8A',
+    });
     expect(budget.merges).toContainEqual({ r1: 0, c1: 0, r2: 0, c2: 3 });
     const variance = budget.rows.get(2)!.get(3)!;
     expect(variance.formula).toBe('C3-B3');
@@ -98,7 +102,9 @@ describe('xlsx reader', () => {
 
   it('rejects malformed archives', () => {
     expect(() => readWorkbook(fixtureBuffer('malformed.xlsx'))).toThrow(/not a valid XLSX/);
-    expect(() => readWorkbook(fixtureBuffer('proposal.docx'))).toThrow(/does not contain a workbook/);
+    expect(() => readWorkbook(fixtureBuffer('proposal.docx'))).toThrow(
+      /does not contain a workbook/,
+    );
   });
 
   it('parses cell references', () => {

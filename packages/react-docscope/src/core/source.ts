@@ -86,9 +86,13 @@ export async function fetchResolved(
   } catch (error) {
     if (isAbortError(error) || signal.aborted) throw abortError();
     // Network errors carry no useful, safe detail (and may contain the URL).
-    throw new DocumentPreviewError('FETCH_FAILED', 'Network error while downloading the document.', {
-      cause: error,
-    });
+    throw new DocumentPreviewError(
+      'FETCH_FAILED',
+      'Network error while downloading the document.',
+      {
+        cause: error,
+      },
+    );
   }
   if (!response.ok) throw errorFromStatus(response.status);
   const length = Number(response.headers.get('content-length'));
@@ -102,7 +106,9 @@ export async function fetchResolved(
     return blob;
   } catch (error) {
     if (isAbortError(error) || signal.aborted) throw abortError();
-    throw new DocumentPreviewError('FETCH_FAILED', 'The download was interrupted.', { cause: error });
+    throw new DocumentPreviewError('FETCH_FAILED', 'The download was interrupted.', {
+      cause: error,
+    });
   }
 }
 
@@ -114,8 +120,10 @@ function tooLargeMessage(size: number, max: number): string {
 /** Decodes text honouring UTF-8 / UTF-16 byte-order marks. */
 export function decodeText(buffer: ArrayBuffer): string {
   const bytes = new Uint8Array(buffer);
-  if (bytes[0] === 0xff && bytes[1] === 0xfe) return new TextDecoder('utf-16le').decode(bytes.subarray(2));
-  if (bytes[0] === 0xfe && bytes[1] === 0xff) return new TextDecoder('utf-16be').decode(bytes.subarray(2));
+  if (bytes[0] === 0xff && bytes[1] === 0xfe)
+    return new TextDecoder('utf-16le').decode(bytes.subarray(2));
+  if (bytes[0] === 0xfe && bytes[1] === 0xff)
+    return new TextDecoder('utf-16be').decode(bytes.subarray(2));
   if (bytes[0] === 0xef && bytes[1] === 0xbb && bytes[2] === 0xbf) {
     return new TextDecoder('utf-8').decode(bytes.subarray(3));
   }
@@ -173,7 +181,16 @@ export class ManagedSource implements DocumentSource {
     this.mimeType = pickMime(resolved.mimeType, document, blobType);
   }
 
-  getRequest(): { url: string; headers?: Record<string, string>; credentials?: RequestCredentials } | null {
+  /** Aborted when the pane stops using this source (document switch / unmount). */
+  get signal(): AbortSignal {
+    return this.options.signal;
+  }
+
+  getRequest(): {
+    url: string;
+    headers?: Record<string, string>;
+    credentials?: RequestCredentials;
+  } | null {
     const r = this.options.resolved;
     if (r.kind !== 'url') return null;
     return {
@@ -186,14 +203,20 @@ export class ManagedSource implements DocumentSource {
   getBlob(): Promise<Blob> {
     if (!this.blobPromise) {
       const r = this.options.resolved as Extract<ResolvedDocument, { kind: 'url' }>;
-      this.blobPromise = fetchResolved(r, this.options.signal, this.options.maxFileSize).then((blob) => {
-        this.size = blob.size;
-        if (isGenericMime(this.mimeType) && blob.type && !isGenericMime(normalizeMime(blob.type))) {
-          this.mimeType = normalizeMime(blob.type);
-        }
-        this.options.caches?.blobs.set(cacheKey(this.options.document), blob);
-        return blob;
-      });
+      this.blobPromise = fetchResolved(r, this.options.signal, this.options.maxFileSize).then(
+        (blob) => {
+          this.size = blob.size;
+          if (
+            isGenericMime(this.mimeType) &&
+            blob.type &&
+            !isGenericMime(normalizeMime(blob.type))
+          ) {
+            this.mimeType = normalizeMime(blob.type);
+          }
+          this.options.caches?.blobs.set(cacheKey(this.options.document), blob);
+          return blob;
+        },
+      );
       // Allow retry after failure.
       this.blobPromise.catch(() => {
         this.blobPromise = undefined;
@@ -216,13 +239,14 @@ export class ManagedSource implements DocumentSource {
     if (!this.textPromise) {
       const key = cacheKey(this.options.document);
       const cached = this.options.caches?.text.get(key);
-      this.textPromise = cached !== undefined
-        ? Promise.resolve(cached)
-        : this.getArrayBuffer().then((buf) => {
-            const text = decodeText(buf);
-            this.options.caches?.text.set(key, text);
-            return text;
-          });
+      this.textPromise =
+        cached !== undefined
+          ? Promise.resolve(cached)
+          : this.getArrayBuffer().then((buf) => {
+              const text = decodeText(buf);
+              this.options.caches?.text.set(key, text);
+              return text;
+            });
       this.textPromise.catch(() => {
         this.textPromise = undefined;
       });
@@ -248,10 +272,18 @@ export class ManagedSource implements DocumentSource {
   }
 }
 
-function pickMime(override: string | undefined, document: PreviewDocument, blobType?: string): string {
+function pickMime(
+  override: string | undefined,
+  document: PreviewDocument,
+  blobType?: string,
+): string {
   const candidates = [override, document.type, blobType].map(normalizeMime);
   for (const c of candidates) if (c && !isGenericMime(c)) return c;
-  return mimeFromExtension(getExtension(document)) || candidates.find(Boolean) || 'application/octet-stream';
+  return (
+    mimeFromExtension(getExtension(document)) ||
+    candidates.find(Boolean) ||
+    'application/octet-stream'
+  );
 }
 
 export interface LoadSourceOptions {
@@ -317,14 +349,18 @@ export async function loadDocumentSource(options: LoadSourceOptions): Promise<Ma
     });
     if (resolved.kind === 'blob') {
       if (resolved.blob.size > maxFileSize && strategy !== 'url') {
-        throw new DocumentPreviewError('TOO_LARGE', tooLargeMessage(resolved.blob.size, maxFileSize));
+        throw new DocumentPreviewError(
+          'TOO_LARGE',
+          tooLargeMessage(resolved.blob.size, maxFileSize),
+        );
       }
       caches?.blobs.set(cacheKey(document), resolved.blob);
     }
     if (strategy === 'url') return source;
     try {
       const blob = await source.getBlob();
-      if (blob.size === 0) throw new DocumentPreviewError('EMPTY_DOCUMENT', 'This document is empty.');
+      if (blob.size === 0)
+        throw new DocumentPreviewError('EMPTY_DOCUMENT', 'This document is empty.');
       return source;
     } catch (error) {
       if (

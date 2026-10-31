@@ -174,7 +174,11 @@ export interface DocumentSource {
    */
   getUrl(): Promise<string>;
   /** URL + headers for renderers that can stream with custom headers (PDF). */
-  getRequest(): { url: string; headers?: Record<string, string>; credentials?: RequestCredentials } | null;
+  getRequest(): {
+    url: string;
+    headers?: Record<string, string>;
+    credentials?: RequestCredentials;
+  } | null;
   getBlob(): Promise<Blob>;
   getArrayBuffer(): Promise<ArrayBuffer>;
   getText(): Promise<string>;
@@ -387,7 +391,10 @@ export type ResolvedPreviewConfig = Required<
   modal: Required<NonNullable<PreviewConfig['modal']>>;
   zoom: Required<NonNullable<PreviewConfig['zoom']>>;
   pdf: Required<Pick<NonNullable<PreviewConfig['pdf']>, 'scrollMode' | 'overscan' | 'thumbnails'>> &
-    Pick<NonNullable<PreviewConfig['pdf']>, 'workerSrc' | 'cMapUrl' | 'standardFontDataUrl' | 'wasmUrl'>;
+    Pick<
+      NonNullable<PreviewConfig['pdf']>,
+      'workerSrc' | 'cMapUrl' | 'standardFontDataUrl' | 'wasmUrl'
+    >;
   csv: { header: boolean | 'auto'; delimiter?: string };
   labels: PreviewLabels;
   shortcuts: Record<ShortcutAction, string[]>;

@@ -1,6 +1,12 @@
 import { LruCache, createCaches } from '../cache';
 import { DEFAULT_CONFIG, DEFAULT_SHORTCUTS, resolveConfig } from '../config';
-import { getExtension, getMimeType, isGenericMime, mimeFromExtension, normalizeMime } from '../detect';
+import {
+  getExtension,
+  getMimeType,
+  isGenericMime,
+  mimeFromExtension,
+  normalizeMime,
+} from '../detect';
 import {
   DocumentPreviewError,
   defaultMessage,
@@ -27,7 +33,9 @@ describe('detect', () => {
   it('derives extensions from explicit value, name and url', () => {
     expect(getExtension({ name: 'x', extension: '.PDF' })).toBe('pdf');
     expect(getExtension({ name: 'Report.Final.DOCX' })).toBe('docx');
-    expect(getExtension({ name: 'noext', url: 'https://cdn.example.com/a/b/file.csv?sig=abc' })).toBe('csv');
+    expect(
+      getExtension({ name: 'noext', url: 'https://cdn.example.com/a/b/file.csv?sig=abc' }),
+    ).toBe('csv');
     expect(getExtension({ name: 'noext', url: 'blob:http://x/123' })).toBe('');
     expect(getExtension({ name: '.hidden' })).toBe('');
     expect(getExtension({ name: 'trailing.' })).toBe('');
@@ -52,8 +60,16 @@ describe('errors', () => {
   it('serialises and classifies', () => {
     const e = new DocumentPreviewError('FETCH_FAILED', 'nope', { status: 500, cause: 'x' });
     e.documentId = 'd1';
-    expect(e.toJSON()).toEqual({ code: 'FETCH_FAILED', message: 'nope', status: 500, documentId: 'd1' });
-    expect(new DocumentPreviewError('RENDER_FAILED', 'm').toJSON()).toEqual({ code: 'RENDER_FAILED', message: 'm' });
+    expect(e.toJSON()).toEqual({
+      code: 'FETCH_FAILED',
+      message: 'nope',
+      status: 500,
+      documentId: 'd1',
+    });
+    expect(new DocumentPreviewError('RENDER_FAILED', 'm').toJSON()).toEqual({
+      code: 'RENDER_FAILED',
+      message: 'm',
+    });
     expect(errorFromStatus(403).code).toBe('ACCESS_DENIED');
     expect(errorFromStatus(401).code).toBe('ACCESS_DENIED');
     expect(errorFromStatus(404).code).toBe('NOT_FOUND');
@@ -68,7 +84,9 @@ describe('errors', () => {
     expect(msg).not.toContain('secret');
     expect(msg).not.toContain('abc.def');
     expect(msg).toContain('[url]');
-    expect(toPreviewError(new Error('see blob:http://x/1'), 'RENDER_FAILED').message).toBe('see [url]');
+    expect(toPreviewError(new Error('see blob:http://x/1'), 'RENDER_FAILED').message).toBe(
+      'see [url]',
+    );
     expect(toPreviewError('plain', 'RENDER_FAILED').message).toBe('plain');
     expect(toPreviewError({}, 'NOT_FOUND').message).toBe(defaultMessage('NOT_FOUND'));
     const existing = new DocumentPreviewError('TOO_LARGE', 'big');
@@ -77,8 +95,16 @@ describe('errors', () => {
 
   it('has a default message for every code', () => {
     const codes: PreviewErrorCode[] = [
-      'RESOLVE_FAILED', 'FETCH_FAILED', 'ACCESS_DENIED', 'NOT_FOUND', 'UNSUPPORTED_FORMAT', 'TOO_LARGE',
-      'EMPTY_DOCUMENT', 'MALFORMED_DOCUMENT', 'RENDER_FAILED', 'DOWNLOAD_FAILED',
+      'RESOLVE_FAILED',
+      'FETCH_FAILED',
+      'ACCESS_DENIED',
+      'NOT_FOUND',
+      'UNSUPPORTED_FORMAT',
+      'TOO_LARGE',
+      'EMPTY_DOCUMENT',
+      'MALFORMED_DOCUMENT',
+      'RENDER_FAILED',
+      'DOWNLOAD_FAILED',
     ];
     for (const c of codes) expect(defaultMessage(c).length).toBeGreaterThan(5);
   });
@@ -102,7 +128,12 @@ describe('config', () => {
 
   it('merges nested values with later configs winning', () => {
     const c = resolveConfig(
-      { theme: 'dark', zoom: { step: 0.5 }, labels: { download: 'Get' }, pdf: { scrollMode: 'single' } },
+      {
+        theme: 'dark',
+        zoom: { step: 0.5 },
+        labels: { download: 'Get' },
+        pdf: { scrollMode: 'single' },
+      },
       { zoom: { min: 0.5 }, className: 'x', pdf: { workerSrc: '/w.js' }, csv: { delimiter: ';' } },
     );
     expect(c.theme).toBe('dark');
@@ -133,7 +164,9 @@ describe('config', () => {
   });
 
   it('customises and disables shortcuts', () => {
-    const c = resolveConfig({ shortcuts: { search: ['mod+k'], rotate: false, bogus: ['x'] } as never });
+    const c = resolveConfig({
+      shortcuts: { search: ['mod+k'], rotate: false, bogus: ['x'] } as never,
+    });
     expect(c.shortcuts.search).toEqual(['mod+k']);
     expect(c.shortcuts.rotate).toEqual([]);
     expect(c.shortcuts.zoomIn).toEqual(DEFAULT_SHORTCUTS.zoomIn);
@@ -188,7 +221,9 @@ describe('search', () => {
       { start: 0, end: 7 },
       { start: 12, end: 19 },
     ]);
-    expect(findTextMatches('Invoice and invoice', 'invoice', true)).toEqual([{ start: 12, end: 19 }]);
+    expect(findTextMatches('Invoice and invoice', 'invoice', true)).toEqual([
+      { start: 12, end: 19 },
+    ]);
     expect(findTextMatches('a  b\nc', 'a b')).toEqual([{ start: 0, end: 4 }]);
     expect(findTextMatches('text', '   ')).toEqual([]);
     expect(findTextMatches('', 'x')).toEqual([]);
@@ -204,7 +239,12 @@ describe('search', () => {
     expect(wrapIndex(5, 3)).toBe(2);
     expect(wrapIndex(-1, 3)).toBe(2);
     expect(wrapIndex(0, 0)).toBe(-1);
-    expect(segmentText('abcabc', [{ start: 1, end: 2 }, { start: 4, end: 5 }])).toEqual([
+    expect(
+      segmentText('abcabc', [
+        { start: 1, end: 2 },
+        { start: 4, end: 5 },
+      ]),
+    ).toEqual([
       { text: 'a', match: null },
       { text: 'b', match: 0 },
       { text: 'ca', match: null },
@@ -218,14 +258,25 @@ describe('search', () => {
 
 describe('shortcuts', () => {
   const ev = (key: string, mods: Partial<KeyboardEvent> = {}) =>
-    ({ key, ctrlKey: false, metaKey: false, altKey: false, shiftKey: false, ...mods }) as KeyboardEvent;
+    ({
+      key,
+      ctrlKey: false,
+      metaKey: false,
+      altKey: false,
+      shiftKey: false,
+      ...mods,
+    }) as KeyboardEvent;
 
   it('parses combos', () => {
     expect(parseShortcut('mod+shift+F')).toMatchObject({ key: 'F', mod: true, shift: true });
     expect(parseShortcut('mod++')).toMatchObject({ key: '+', mod: true });
     expect(parseShortcut('+')).toMatchObject({ key: '+' });
     expect(parseShortcut('ctrl+alt+meta+x')).toMatchObject({ ctrl: true, alt: true, meta: true });
-    expect(parseShortcut('control+option+cmd+y')).toMatchObject({ ctrl: true, alt: true, meta: true });
+    expect(parseShortcut('control+option+cmd+y')).toMatchObject({
+      ctrl: true,
+      alt: true,
+      meta: true,
+    });
   });
 
   it('matches mod per platform', () => {
@@ -240,7 +291,9 @@ describe('shortcuts', () => {
   });
 
   it('finds actions and filters editable targets', () => {
-    expect(findShortcutAction(ev('ArrowRight', { altKey: true }), DEFAULT_SHORTCUTS, false)).toBe('nextDocument');
+    expect(findShortcutAction(ev('ArrowRight', { altKey: true }), DEFAULT_SHORTCUTS, false)).toBe(
+      'nextDocument',
+    );
     expect(findShortcutAction(ev('q'), DEFAULT_SHORTCUTS, false)).toBeUndefined();
     const input = document.createElement('input');
     expect(isEditableTarget(input)).toBe(true);
@@ -292,7 +345,8 @@ describe('RendererRegistry', () => {
 
   it('resolves built-ins by mime, extension and wildcard', () => {
     const r = createDefaultRegistry();
-    const id = (doc: Parameters<RendererRegistry['resolve']>[0], mime?: string) => r.resolve(doc, mime)?.id;
+    const id = (doc: Parameters<RendererRegistry['resolve']>[0], mime?: string) =>
+      r.resolve(doc, mime)?.id;
     expect(id({ id: '1', name: 'a.pdf' })).toBe('pdf');
     expect(id({ id: '1', name: 'file', type: 'application/pdf' })).toBe('pdf');
     expect(id({ id: '1', name: 'a.PNG' })).toBe('image');
@@ -332,8 +386,12 @@ describe('RendererRegistry', () => {
   it('validates definitions', () => {
     const r = new RendererRegistry();
     expect(() => r.register({} as RendererDefinition)).toThrow(/id/);
-    expect(() => r.register({ ...stub('a'), load: undefined } as unknown as RendererDefinition)).toThrow(/load/);
-    expect(() => r.register({ ...stub('a'), mimeTypes: undefined } as unknown as RendererDefinition)).toThrow(/arrays/);
+    expect(() =>
+      r.register({ ...stub('a'), load: undefined } as unknown as RendererDefinition),
+    ).toThrow(/load/);
+    expect(() =>
+      r.register({ ...stub('a'), mimeTypes: undefined } as unknown as RendererDefinition),
+    ).toThrow(/arrays/);
   });
 
   it('every built-in renderer lazily exposes a component', () => {

@@ -20,7 +20,10 @@ export default function XlsxRenderer({ document, source, search, view, host }: R
   }, [source]);
 
   const visible = useMemo(
-    () => (workbook ? workbook.sheets.map((s, i) => ({ ...s, index: i })).filter((s) => s.state === 'visible') : []),
+    () =>
+      workbook
+        ? workbook.sheets.map((s, i) => ({ ...s, index: i })).filter((s) => s.state === 'visible')
+        : [],
     [workbook],
   );
   const [sheetIndex, setSheetIndex] = useState<number | null>(null);
@@ -53,7 +56,8 @@ export default function XlsxRenderer({ document, source, search, view, host }: R
       const row = sheet.rows.get(r)!;
       const colKeys = [...row.keys()].sort((a, b) => a - b);
       for (const c of colKeys) {
-        if (textIncludes(row.get(c)!.text, search.query, search.caseSensitive)) out.push({ row: r, col: c });
+        if (textIncludes(row.get(c)!.text, search.query, search.caseSensitive))
+          out.push({ row: r, col: c });
         if (out.length >= 10_000) return out;
       }
     }
@@ -77,8 +81,14 @@ export default function XlsxRenderer({ document, source, search, view, host }: R
     },
     [sheet],
   );
-  const colWidth = useCallback((c: number) => sheet?.colWidths.get(c) ?? sheet?.defaultColWidth ?? 64, [sheet]);
-  const rowHeight = useCallback((r: number) => sheet?.rowHeights.get(r) ?? sheet?.defaultRowHeight ?? 20, [sheet]);
+  const colWidth = useCallback(
+    (c: number) => sheet?.colWidths.get(c) ?? sheet?.defaultColWidth ?? 64,
+    [sheet],
+  );
+  const rowHeight = useCallback(
+    (r: number) => sheet?.rowHeights.get(r) ?? sheet?.defaultRowHeight ?? 20,
+    [sheet],
+  );
 
   if (!workbook || !sheet) return null;
   const hiddenCount = workbook.sheets.length - visible.length;

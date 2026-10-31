@@ -50,7 +50,11 @@ export default function MarkdownRenderer({ document, source, search, view, host 
 
   useWheelZoom(scrollRef, view.zoom, host);
   useDomSearch(contentRef, scrollRef, search, host, raw ? null : text, false);
-  const rawSearch = useLineSearch(lines, raw ? search : { ...search, query: '' }, raw ? host : noopHost);
+  const rawSearch = useLineSearch(
+    lines,
+    raw ? search : { ...search, query: '' },
+    raw ? host : noopHost,
+  );
 
   if (text === undefined) return null;
   if (raw) {

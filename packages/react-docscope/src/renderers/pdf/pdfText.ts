@@ -52,13 +52,20 @@ export function buildPageText(rawItems: RawItem[]): PdfPageText {
   return { text, items };
 }
 
-export function findPdfMatches(pages: Map<number, PdfPageText>, pageCount: number, query: string, caseSensitive: boolean, limit = 10_000): PdfMatch[] {
+export function findPdfMatches(
+  pages: Map<number, PdfPageText>,
+  pageCount: number,
+  query: string,
+  caseSensitive: boolean,
+  limit = 10_000,
+): PdfMatch[] {
   const out: PdfMatch[] = [];
   if (!query.trim()) return out;
   for (let p = 1; p <= pageCount; p += 1) {
     const page = pages.get(p);
     if (!page) continue;
-    for (const m of findTextMatches(page.text, query, caseSensitive, limit - out.length)) out.push({ page: p, ...m });
+    for (const m of findTextMatches(page.text, query, caseSensitive, limit - out.length))
+      out.push({ page: p, ...m });
     if (out.length >= limit) break;
   }
   return out;
@@ -82,9 +89,19 @@ export function matchRects(page: PdfPageText, start: number, end: number): numbe
 }
 
 /** Normalises a viewport rectangle to { left, top, width, height } in CSS px. */
-export function toCssRect(r: number[]): { left: number; top: number; width: number; height: number } {
+export function toCssRect(r: number[]): {
+  left: number;
+  top: number;
+  width: number;
+  height: number;
+} {
   const [x1 = 0, y1 = 0, x2 = 0, y2 = 0] = r;
-  return { left: Math.min(x1, x2), top: Math.min(y1, y2), width: Math.abs(x2 - x1), height: Math.abs(y2 - y1) };
+  return {
+    left: Math.min(x1, x2),
+    top: Math.min(y1, y2),
+    width: Math.abs(x2 - x1),
+    height: Math.abs(y2 - y1),
+  };
 }
 
 /** Index of the first page whose bottom edge is below `y` (binary search over cumulative offsets). */
@@ -100,7 +117,12 @@ export function pageAtOffset(offsets: number[], heights: number[], y: number): n
 }
 
 /** Caps the canvas pixel ratio so very large pages stay within browser canvas limits. */
-export function canvasScale(cssWidth: number, cssHeight: number, dpr: number, maxPixels = 16_000_000): number {
+export function canvasScale(
+  cssWidth: number,
+  cssHeight: number,
+  dpr: number,
+  maxPixels = 16_000_000,
+): number {
   const area = cssWidth * cssHeight * dpr * dpr;
   return area > maxPixels ? Math.sqrt(maxPixels / (cssWidth * cssHeight)) : dpr;
 }

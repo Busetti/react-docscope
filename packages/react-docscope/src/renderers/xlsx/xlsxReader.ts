@@ -68,14 +68,70 @@ const MAX_CELLS = 5_000_000;
 
 /** Standard indexed colour palette (indexes 0-63). */
 const INDEXED = [
-  '000000', 'FFFFFF', 'FF0000', '00FF00', '0000FF', 'FFFF00', 'FF00FF', '00FFFF',
-  '000000', 'FFFFFF', 'FF0000', '00FF00', '0000FF', 'FFFF00', 'FF00FF', '00FFFF',
-  '800000', '008000', '000080', '808000', '800080', '008080', 'C0C0C0', '808080',
-  '9999FF', '993366', 'FFFFCC', 'CCFFFF', '660066', 'FF8080', '0066CC', 'CCCCFF',
-  '000080', 'FF00FF', 'FFFF00', '00FFFF', '800080', '800000', '008080', '0000FF',
-  '00CCFF', 'CCFFFF', 'CCFFCC', 'FFFF99', '99CCFF', 'FF99CC', 'CC99FF', 'FFCC99',
-  '3366FF', '33CCCC', '99CC00', 'FFCC00', 'FF9900', 'FF6600', '666699', '969696',
-  '003366', '339966', '003300', '333300', '993300', '993366', '333399', '333333',
+  '000000',
+  'FFFFFF',
+  'FF0000',
+  '00FF00',
+  '0000FF',
+  'FFFF00',
+  'FF00FF',
+  '00FFFF',
+  '000000',
+  'FFFFFF',
+  'FF0000',
+  '00FF00',
+  '0000FF',
+  'FFFF00',
+  'FF00FF',
+  '00FFFF',
+  '800000',
+  '008000',
+  '000080',
+  '808000',
+  '800080',
+  '008080',
+  'C0C0C0',
+  '808080',
+  '9999FF',
+  '993366',
+  'FFFFCC',
+  'CCFFFF',
+  '660066',
+  'FF8080',
+  '0066CC',
+  'CCCCFF',
+  '000080',
+  'FF00FF',
+  'FFFF00',
+  '00FFFF',
+  '800080',
+  '800000',
+  '008080',
+  '0000FF',
+  '00CCFF',
+  'CCFFFF',
+  'CCFFCC',
+  'FFFF99',
+  '99CCFF',
+  'FF99CC',
+  'CC99FF',
+  'FFCC99',
+  '3366FF',
+  '33CCCC',
+  '99CC00',
+  'FFCC00',
+  'FF9900',
+  'FF6600',
+  '666699',
+  '969696',
+  '003366',
+  '339966',
+  '003300',
+  '333300',
+  '993300',
+  '993366',
+  '333399',
+  '333333',
 ];
 
 function parseXmlDoc(xml: string): Document {
@@ -152,7 +208,10 @@ function applyTint(hex: string, tint: number): string {
     gg = hue2rgb(p, q, h);
     bb = hue2rgb(p, q, h - 1 / 3);
   }
-  const hex2 = (v: number) => Math.round(v * 255).toString(16).padStart(2, '0');
+  const hex2 = (v: number) =>
+    Math.round(v * 255)
+      .toString(16)
+      .padStart(2, '0');
   return `${hex2(rr)}${hex2(gg)}${hex2(bb)}`.toUpperCase();
 }
 
@@ -173,7 +232,9 @@ function readColor(el: Element | undefined, theme: string[]): string | undefined
 }
 
 function readTheme(files: Record<string, Uint8Array>, workbookRels: Map<string, string>): string[] {
-  const themePath = [...workbookRels.values()].find((p) => /theme\/theme\d*\.xml$/.test(p)) ?? 'xl/theme/theme1.xml';
+  const themePath =
+    [...workbookRels.values()].find((p) => /theme\/theme\d*\.xml$/.test(p)) ??
+    'xl/theme/theme1.xml';
   const bytes = files[themePath];
   if (!bytes) return [];
   const doc = parseXmlDoc(strFromU8(bytes));
@@ -210,14 +271,19 @@ function readStyles(files: Record<string, Uint8Array>, theme: string[]): Xf[] {
   if (!bytes) return [];
   const doc = parseXmlDoc(strFromU8(bytes));
   const numFmts = new Map<number, string>();
-  for (const nf of els(doc, 'numFmt')) numFmts.set(Number(nf.getAttribute('numFmtId')), nf.getAttribute('formatCode') ?? 'General');
+  for (const nf of els(doc, 'numFmt'))
+    numFmts.set(Number(nf.getAttribute('numFmtId')), nf.getAttribute('formatCode') ?? 'General');
 
   const fontsEl = els(doc, 'fonts')[0];
   const fonts: FontStyle[] = (fontsEl ? children(fontsEl, 'font') : []).map((f) => {
     const val = (name: string) => child(f, name);
     const flag = (name: string) => {
       const e = val(name);
-      return e ? e.getAttribute('val') !== '0' && e.getAttribute('val') !== 'false' && e.getAttribute('val') !== 'none' : undefined;
+      return e
+        ? e.getAttribute('val') !== '0' &&
+            e.getAttribute('val') !== 'false' &&
+            e.getAttribute('val') !== 'none'
+        : undefined;
     };
     const size = Number(val('sz')?.getAttribute('val'));
     return {
@@ -243,7 +309,9 @@ function readStyles(files: Record<string, Uint8Array>, theme: string[]): Xf[] {
   });
 
   const bordersEl = els(doc, 'borders')[0];
-  const borders: Array<CSSProperties | undefined> = (bordersEl ? children(bordersEl, 'border') : []).map((b) => {
+  const borders: Array<CSSProperties | undefined> = (
+    bordersEl ? children(bordersEl, 'border') : []
+  ).map((b) => {
     const css: CSSProperties = {};
     for (const side of ['left', 'right', 'top', 'bottom'] as const) {
       const e = child(b, side);
@@ -277,7 +345,11 @@ function readStyles(files: Record<string, Uint8Array>, theme: string[]): Xf[] {
   });
 }
 
-function styleToCss(xf: Xf | undefined, baseFontSize: number, isNumber: boolean): CSSProperties | undefined {
+function styleToCss(
+  xf: Xf | undefined,
+  baseFontSize: number,
+  isNumber: boolean,
+): CSSProperties | undefined {
   const css: CSSProperties = {};
   if (xf?.font) {
     const f = xf.font;
@@ -286,7 +358,8 @@ function styleToCss(xf: Xf | undefined, baseFontSize: number, isNumber: boolean)
     const deco = [f.underline && 'underline', f.strike && 'line-through'].filter(Boolean).join(' ');
     if (deco) css.textDecoration = deco;
     if (f.color && f.color.toUpperCase() !== '#000000') css.color = f.color;
-    if (f.size && Math.abs(f.size - baseFontSize) > 0.1) css.fontSize = `${(f.size / baseFontSize).toFixed(3)}em`;
+    if (f.size && Math.abs(f.size - baseFontSize) > 0.1)
+      css.fontSize = `${(f.size / baseFontSize).toFixed(3)}em`;
   }
   if (xf?.fill) css.backgroundColor = xf.fill;
   if (xf?.border) Object.assign(css, xf.border);
@@ -333,7 +406,9 @@ export function readWorkbook(data: ArrayBuffer | Uint8Array): XlsxWorkbook {
   let files: Record<string, Uint8Array>;
   try {
     files = unzipSync(bytes, {
-      filter: (f) => /^(xl\/|_rels\/|\[Content_Types\])/.test(f.name) && !/\.(png|jpe?g|gif|emf|wmf|bin)$/i.test(f.name),
+      filter: (f) =>
+        /^(xl\/|_rels\/|\[Content_Types\])/.test(f.name) &&
+        !/\.(png|jpe?g|gif|emf|wmf|bin)$/i.test(f.name),
     });
   } catch {
     throw new Error('The file is not a valid XLSX archive.');
@@ -346,14 +421,22 @@ export function readWorkbook(data: ArrayBuffer | Uint8Array): XlsxWorkbook {
   const relBytes = files['xl/_rels/workbook.xml.rels'];
   if (relBytes) {
     for (const r of els(parseXmlDoc(strFromU8(relBytes)), 'Relationship')) {
-      rels.set(r.getAttribute('Id') ?? '', resolvePath('xl/workbook.xml', r.getAttribute('Target') ?? ''));
+      rels.set(
+        r.getAttribute('Id') ?? '',
+        resolvePath('xl/workbook.xml', r.getAttribute('Target') ?? ''),
+      );
     }
   }
-  const date1904 = ['1', 'true'].includes(els(wbDoc, 'workbookPr')[0]?.getAttribute('date1904') ?? '');
+  const date1904 = ['1', 'true'].includes(
+    els(wbDoc, 'workbookPr')[0]?.getAttribute('date1904') ?? '',
+  );
   const sheets: SheetInfo[] = els(wbDoc, 'sheet').map((s, i) => {
     const rid =
       s.getAttribute('r:id') ??
-      s.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id') ??
+      s.getAttributeNS(
+        'http://schemas.openxmlformats.org/officeDocument/2006/relationships',
+        'id',
+      ) ??
       '';
     const state = s.getAttribute('state');
     return {
@@ -399,7 +482,8 @@ export function readWorkbook(data: ArrayBuffer | Uint8Array): XlsxWorkbook {
       const width = Number(col.getAttribute('width'));
       for (let c = min - 1; c < max; c += 1) {
         if (hidden) colWidths.set(c, 0);
-        else if (Number.isFinite(width) && col.hasAttribute('width')) colWidths.set(c, colWidthPx(width));
+        else if (Number.isFinite(width) && col.hasAttribute('width'))
+          colWidths.set(c, colWidthPx(width));
       }
     }
 
@@ -407,7 +491,8 @@ export function readWorkbook(data: ArrayBuffer | Uint8Array): XlsxWorkbook {
     for (const rowEl of els(doc, 'row')) {
       const r = rowEl.hasAttribute('r') ? Number(rowEl.getAttribute('r')) - 1 : implicitRow + 1;
       implicitRow = r;
-      if (rowEl.getAttribute('hidden') === '1' || rowEl.getAttribute('hidden') === 'true') rowHeights.set(r, 0);
+      if (rowEl.getAttribute('hidden') === '1' || rowEl.getAttribute('hidden') === 'true')
+        rowHeights.set(r, 0);
       else if (rowEl.hasAttribute('ht') && rowEl.getAttribute('customHeight') !== '0') {
         rowHeights.set(r, Math.round((Number(rowEl.getAttribute('ht')) * 4) / 3));
       }
@@ -467,7 +552,10 @@ export function readWorkbook(data: ArrayBuffer | Uint8Array): XlsxWorkbook {
               const n = Number(raw);
               value = Number.isFinite(n) ? n : raw;
               isNumber = typeof value === 'number';
-              text = typeof value === 'number' ? formatCellValue(value, xf?.numFmt ?? 'General', date1904) : String(value);
+              text =
+                typeof value === 'number'
+                  ? formatCellValue(value, xf?.numFmt ?? 'General', date1904)
+                  : String(value);
             }
           }
         }

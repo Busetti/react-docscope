@@ -22,7 +22,9 @@ afterEach(() => {
 
 describe('DOM search', () => {
   it('collects text nodes, skipping scripts and ignored regions', () => {
-    const root = el('<p>One <b>two</b></p><script>var x</script><div data-dsc-search-ignore>skip</div><style>p{}</style>');
+    const root = el(
+      '<p>One <b>two</b></p><script>var x</script><div data-dsc-search-ignore>skip</div><style>p{}</style>',
+    );
     expect(collectTextNodes(root).map((n) => n.nodeValue)).toEqual(['One ', 'two']);
   });
 
@@ -50,7 +52,11 @@ describe('DOM search', () => {
   it('wraps multi-node ranges', () => {
     const root = el('<p>ab<b>cd</b><i>ef</i>gh</p>');
     const restore = wrapRanges(findDomMatches(root, 'bcdefg'), 0);
-    expect(Array.from(root.querySelectorAll('mark')).map((m) => m.textContent).join('')).toBe('bcdefg');
+    expect(
+      Array.from(root.querySelectorAll('mark'))
+        .map((m) => m.textContent)
+        .join(''),
+    ).toBe('bcdefg');
     restore();
     expect(root.textContent).toBe('abcdefgh');
   });
@@ -88,7 +94,10 @@ describe('DOM search', () => {
       expect(supportsHighlightApi()).toBe(true);
       const root = el('<p>cat cat cat</p>');
       const owner = {};
-      const res = highlightDom(owner, root, 'cat', false, 1, { allowMutation: true, scrollContainer: root });
+      const res = highlightDom(owner, root, 'cat', false, 1, {
+        allowMutation: true,
+        scrollContainer: root,
+      });
       expect(res.count).toBe(3);
       expect(root.querySelector('mark')).toBeNull(); // DOM untouched
       expect(registry.get('dsc-search')!.ranges).toHaveLength(2);
@@ -143,7 +152,9 @@ describe('sanitizeHtml', () => {
   });
 
   it('filters styles and hrefs', () => {
-    expect(sanitizeStyle('color: red; position: fixed; width: 10px; bogus')).toBe('color: red; width: 10px');
+    expect(sanitizeStyle('color: red; position: fixed; width: 10px; bogus')).toBe(
+      'color: red; width: 10px',
+    );
     expect(isSafeHref(' HTTPS://a')).toBe(true);
     expect(isSafeHref('mailto:a@b')).toBe(true);
     expect(isSafeHref('#x')).toBe(true);
@@ -151,7 +162,9 @@ describe('sanitizeHtml', () => {
   });
 
   it('neutralises links in renderer-owned DOM', () => {
-    const root = el('<a href="javascript:x">a</a><a href="https://e.com">b</a><a href="#top">c</a><span onmouseover="x">d</span><script></script>');
+    const root = el(
+      '<a href="javascript:x">a</a><a href="https://e.com">b</a><a href="#top">c</a><span onmouseover="x">d</span><script></script>',
+    );
     neutralizeLinks(root);
     const links = root.querySelectorAll('a');
     expect(links[0]!.hasAttribute('href')).toBe(false);

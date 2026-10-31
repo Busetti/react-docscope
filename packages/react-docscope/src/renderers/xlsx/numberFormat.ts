@@ -38,7 +38,20 @@ export const BUILTIN_FORMATS: Record<number, string> = {
   49: '@',
 };
 
-const MONTHS = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+const MONTHS = [
+  'January',
+  'February',
+  'March',
+  'April',
+  'May',
+  'June',
+  'July',
+  'August',
+  'September',
+  'October',
+  'November',
+  'December',
+];
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 /** Splits a format into sections on `;` outside quotes / brackets / escapes. */
@@ -68,7 +81,11 @@ export function splitSections(format: string): string[] {
 
 /** Removes quoted literals, escapes and brackets so tokens can be inspected. */
 function stripLiterals(section: string): string {
-  return section.replace(/"[^"]*"/g, '').replace(/\\./g, '').replace(/\[[^\]]*\]/g, '').replace(/[_*]./g, '');
+  return section
+    .replace(/"[^"]*"/g, '')
+    .replace(/\\./g, '')
+    .replace(/\[[^\]]*\]/g, '')
+    .replace(/[_*]./g, '');
 }
 
 export function isDateFormat(format: string): boolean {
@@ -130,7 +147,10 @@ export function formatDate(serial: number, section: string, date1904 = false): s
   const ampm = /AM\/PM|A\/P/i.test(section);
   const elapsedH = Math.floor(serial * 24);
 
-  const tokens = section.match(/"[^"]*"|\\.|\[[^\]]*\]|AM\/PM|A\/P|y+|m+|d+|h+|s+(?:\.0+)?|[^ymdhsa"\\[]+|./gi) ?? [];
+  const tokens =
+    section.match(
+      /"[^"]*"|\\.|\[[^\]]*\]|AM\/PM|A\/P|y+|m+|d+|h+|s+(?:\.0+)?|[^ymdhsa"\\[]+|./gi,
+    ) ?? [];
   let out = '';
   for (let i = 0; i < tokens.length; i += 1) {
     const t = tokens[i]!;
@@ -146,8 +166,13 @@ export function formatDate(serial: number, section: string, date1904 = false): s
       out += lower.length <= 2 ? pad(y % 100, 2) : String(y);
     } else if (/^m+$/.test(lower)) {
       // "m" after h or before s means minutes.
-      const prev = tokens.slice(0, i).reverse().find((x) => /^[a-z]/i.test(x) && !/^(am\/pm|a\/p)$/i.test(x));
-      const next = tokens.slice(i + 1).find((x) => /^[a-z]/i.test(x) && !/^(am\/pm|a\/p)$/i.test(x));
+      const prev = tokens
+        .slice(0, i)
+        .reverse()
+        .find((x) => /^[a-z]/i.test(x) && !/^(am\/pm|a\/p)$/i.test(x));
+      const next = tokens
+        .slice(i + 1)
+        .find((x) => /^[a-z]/i.test(x) && !/^(am\/pm|a\/p)$/i.test(x));
       const minutes = (prev && /^h/i.test(prev)) || (next && /^s/i.test(next));
       if (minutes && lower.length <= 2) out += lower.length === 2 ? pad(mi, 2) : String(mi);
       else if (lower.length === 1) out += String(mo + 1);
@@ -211,7 +236,11 @@ function formatNumberPattern(value: number, pattern: string): string {
     return `${m.toFixed(decimals)}E${sign}${String(Math.abs(e)).padStart(expDigits, '0')}`;
   }
   // Commas right after the last digit placeholder scale by thousands.
-  const lastDigit = Math.max(clean.lastIndexOf('0'), clean.lastIndexOf('#'), clean.lastIndexOf('?'));
+  const lastDigit = Math.max(
+    clean.lastIndexOf('0'),
+    clean.lastIndexOf('#'),
+    clean.lastIndexOf('?'),
+  );
   const scale = /^,+/.exec(clean.slice(lastDigit + 1));
   if (scale) v /= Math.pow(1000, scale[0].length);
   const [intPat, decPat = ''] = clean.replace(/%/g, '').split('.');
@@ -221,7 +250,8 @@ function formatNumberPattern(value: number, pattern: string): string {
   const thousands = /[0#?],[0#?]/.test(intPat!);
   let str = Math.abs(v).toFixed(maxDecimals);
   let [i, d = ''] = str.split('.');
-  if (maxDecimals > minDecimals) d = d.replace(new RegExp(`0{1,${maxDecimals - minDecimals}}$`), '');
+  if (maxDecimals > minDecimals)
+    d = d.replace(new RegExp(`0{1,${maxDecimals - minDecimals}}$`), '');
   if (i === '0' && minInt === 0) i = '';
   i = i!.padStart(minInt, '0');
   if (thousands) i = groupThousands(i);
@@ -230,9 +260,16 @@ function formatNumberPattern(value: number, pattern: string): string {
   return str + '%'.repeat(percentCount);
 }
 
-function applySection(value: number, section: string, date1904: boolean, isNegativeSection: boolean): string {
+function applySection(
+  value: number,
+  section: string,
+  date1904: boolean,
+  isNegativeSection: boolean,
+): string {
   if (isDateFormat(section)) return formatDate(value, section, date1904);
-  const s = section.replace(/\[(Red|Black|Blue|Green|White|Yellow|Magenta|Cyan|Color\s*\d+)\]/gi, '').replace(/\[[<>=][^\]]*\]/g, '');
+  const s = section
+    .replace(/\[(Red|Black|Blue|Green|White|Yellow|Magenta|Cyan|Color\s*\d+)\]/gi, '')
+    .replace(/\[[<>=][^\]]*\]/g, '');
   if (/^\s*General\s*$/i.test(s)) return formatGeneral(value);
   if (!/[0#?]/.test(stripLiterals(s))) return literal(s);
   // Locate the numeric pattern span.
@@ -270,7 +307,11 @@ function applySection(value: number, section: string, date1904: boolean, isNegat
 }
 
 /** Formats a cell value with an Excel number format code. */
-export function formatCellValue(value: number | string | boolean | null, format: string, date1904 = false): string {
+export function formatCellValue(
+  value: number | string | boolean | null,
+  format: string,
+  date1904 = false,
+): string {
   if (value === null || value === undefined) return '';
   if (typeof value === 'boolean') return value ? 'TRUE' : 'FALSE';
   const sections = splitSections(format || 'General');
@@ -281,10 +322,12 @@ export function formatCellValue(value: number | string | boolean | null, format:
   if (!Number.isFinite(value)) return String(value);
   try {
     if (sections.length === 1 || (value > 0 && sections.length >= 1)) {
-      if (sections.length > 1 && value === 0 && sections[2] !== undefined) return applySection(value, sections[2], date1904, false);
+      if (sections.length > 1 && value === 0 && sections[2] !== undefined)
+        return applySection(value, sections[2], date1904, false);
       return applySection(value, sections[0]!, date1904, false);
     }
-    if (value < 0) return applySection(value, sections[1] ?? sections[0]!, date1904, sections[1] !== undefined);
+    if (value < 0)
+      return applySection(value, sections[1] ?? sections[0]!, date1904, sections[1] !== undefined);
     return applySection(value, sections[2] ?? sections[0]!, date1904, false);
   } catch {
     /* istanbul ignore next -- defensive: never fail rendering because of a format */

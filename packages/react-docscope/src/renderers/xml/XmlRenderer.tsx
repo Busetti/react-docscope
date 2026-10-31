@@ -39,16 +39,41 @@ export default function XmlRenderer({ document, source, search, view, host }: Re
             <strong>Invalid XML.</strong> {parsed.message}
           </div>
         )}
-        <RawXml text={text} search={search} host={host} zoom={view.zoom} label={`${document.name} (source)`} />
+        <RawXml
+          text={text}
+          search={search}
+          host={host}
+          zoom={view.zoom}
+          label={`${document.name} (source)`}
+        />
       </div>
     );
   }
   return (
-    <XmlTree index={parsed.index} rootId={parsed.rootId} search={search} host={host} zoom={view.zoom} label={document.name} />
+    <XmlTree
+      index={parsed.index}
+      rootId={parsed.rootId}
+      search={search}
+      host={host}
+      zoom={view.zoom}
+      label={document.name}
+    />
   );
 }
 
-function RawXml({ text, search, host, zoom, label }: { text: string; search: RendererProps['search']; host: RendererProps['host']; zoom: number; label: string }) {
+function RawXml({
+  text,
+  search,
+  host,
+  zoom,
+  label,
+}: {
+  text: string;
+  search: RendererProps['search'];
+  host: RendererProps['host'];
+  zoom: number;
+  label: string;
+}) {
   const lines = useMemo(() => splitLines(prettyXml(text)), [text]);
   const { byLine, active } = useLineSearch(lines, search, host);
   return (
@@ -117,7 +142,10 @@ function XmlTree({
     });
   }, []);
 
-  const renderRow = useCallback((row: XmlRow) => <XmlRowContent node={row.node} expanded={row.expanded} />, []);
+  const renderRow = useCallback(
+    (row: XmlRow) => <XmlRowContent node={row.node} expanded={row.expanded} />,
+    [],
+  );
 
   return (
     <div className="dsc-stack">
@@ -171,7 +199,9 @@ function XmlTree({
             )}
           </>
         ) : (
-          <div className="dsc-statusbar dsc-muted">Select a node to inspect its path and attributes.</div>
+          <div className="dsc-statusbar dsc-muted">
+            Select a node to inspect its path and attributes.
+          </div>
         )}
       </div>
     </div>

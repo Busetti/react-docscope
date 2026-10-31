@@ -85,7 +85,10 @@ export default function ImageRenderer({ document, source, view, host }: Renderer
       onPointerCancel={endDrag}
     >
       {url && (
-        <div className="dsc-image-stage" style={{ width: boxW || undefined, height: boxH || undefined }}>
+        <div
+          className="dsc-image-stage"
+          style={{ width: boxW || undefined, height: boxH || undefined }}
+        >
           <img
             src={url}
             alt={document.name}

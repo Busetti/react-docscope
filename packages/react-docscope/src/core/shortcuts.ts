@@ -17,7 +17,14 @@ export function parseShortcut(combo: string): ParsedShortcut {
   if (hit) return hit;
   // Support "mod++" (plus key) by splitting on "+" not followed by end.
   const parts = combo === '+' ? ['+'] : combo.split(/\+(?!$)/);
-  const parsed: ParsedShortcut = { key: '', mod: false, ctrl: false, meta: false, alt: false, shift: undefined };
+  const parsed: ParsedShortcut = {
+    key: '',
+    mod: false,
+    ctrl: false,
+    meta: false,
+    alt: false,
+    shift: undefined,
+  };
   for (const raw of parts) {
     const p = raw.trim();
     const lower = p.toLowerCase();
@@ -48,10 +55,16 @@ export function matchesShortcut(event: KeyLike, combo: string, apple = isApplePl
   if (!s.key) return false;
   const wantCtrl = s.ctrl || (s.mod && !apple);
   const wantMeta = s.meta || (s.mod && apple);
-  if (event.ctrlKey !== wantCtrl || event.metaKey !== wantMeta || event.altKey !== s.alt) return false;
+  if (event.ctrlKey !== wantCtrl || event.metaKey !== wantMeta || event.altKey !== s.alt)
+    return false;
   // Shift is only enforced when declared, because many keys ("+", "?") require it.
   if (s.shift === true && !event.shiftKey) return false;
-  if (s.shift === undefined && event.shiftKey && s.key.length > 1 && /^F\d+$|^Arrow|^Page/.test(s.key)) {
+  if (
+    s.shift === undefined &&
+    event.shiftKey &&
+    s.key.length > 1 &&
+    /^F\d+$|^Arrow|^Page/.test(s.key)
+  ) {
     return false;
   }
   return event.key.toLowerCase() === s.key.toLowerCase();

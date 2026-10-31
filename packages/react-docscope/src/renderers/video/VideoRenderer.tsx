@@ -42,7 +42,10 @@ export default function VideoRenderer({ document, source, host }: RendererProps)
         aria-label={document.name}
         onLoadedMetadata={() => host.setReady()}
         onError={() =>
-          host.setError('RENDER_FAILED', 'This video could not be played. The format may not be supported by your browser.')
+          host.setError(
+            'RENDER_FAILED',
+            'This video could not be played. The format may not be supported by your browser.',
+          )
         }
       >
         <track kind="captions" />

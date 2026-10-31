@@ -59,7 +59,9 @@ export class RendererRegistry {
     }
     const ext = getExtension(document);
     if (ext) {
-      const byExt = sorted.find((d) => d.extensions.some((e) => e.replace(/^\./, '').toLowerCase() === ext));
+      const byExt = sorted.find((d) =>
+        d.extensions.some((e) => e.replace(/^\./, '').toLowerCase() === ext),
+      );
       if (byExt) return byExt;
     }
     if (mime && !isGenericMime(mime)) {
@@ -72,8 +74,10 @@ export class RendererRegistry {
 }
 
 function validateDefinition(d: RendererDefinition): void {
-  if (!d || typeof d.id !== 'string' || !d.id) throw new TypeError('Renderer definition requires an id.');
-  if (typeof d.load !== 'function') throw new TypeError(`Renderer "${d.id}" requires a load() function.`);
+  if (!d || typeof d.id !== 'string' || !d.id)
+    throw new TypeError('Renderer definition requires an id.');
+  if (typeof d.load !== 'function')
+    throw new TypeError(`Renderer "${d.id}" requires a load() function.`);
   if (!Array.isArray(d.mimeTypes) || !Array.isArray(d.extensions)) {
     throw new TypeError(`Renderer "${d.id}" requires mimeTypes and extensions arrays.`);
   }

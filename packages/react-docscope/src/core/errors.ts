@@ -7,7 +7,11 @@ export class DocumentPreviewError extends Error implements PreviewError {
   override readonly cause?: unknown;
   documentId?: string;
 
-  constructor(code: PreviewErrorCode, message: string, options: { status?: number; cause?: unknown } = {}) {
+  constructor(
+    code: PreviewErrorCode,
+    message: string,
+    options: { status?: number; cause?: unknown } = {},
+  ) {
     super(message);
     this.name = 'DocumentPreviewError';
     this.code = code;
@@ -79,5 +83,7 @@ export function errorFromStatus(status: number): DocumentPreviewError {
   if (status === 404 || status === 410) {
     return new DocumentPreviewError('NOT_FOUND', defaultMessage('NOT_FOUND'), { status });
   }
-  return new DocumentPreviewError('FETCH_FAILED', `Request failed with status ${status}.`, { status });
+  return new DocumentPreviewError('FETCH_FAILED', `Request failed with status ${status}.`, {
+    status,
+  });
 }

@@ -6,14 +6,58 @@
  */
 
 const ALLOWED_TAGS = new Set([
-  'P', 'DIV', 'SPAN', 'BR', 'B', 'STRONG', 'I', 'EM', 'U', 'S', 'STRIKE', 'DEL', 'SUB', 'SUP',
-  'UL', 'OL', 'LI', 'A', 'FONT', 'SMALL', 'BIG', 'CODE', 'PRE', 'BLOCKQUOTE', 'H1', 'H2', 'H3',
-  'H4', 'H5', 'H6', 'TABLE', 'THEAD', 'TBODY', 'TR', 'TD', 'TH',
+  'P',
+  'DIV',
+  'SPAN',
+  'BR',
+  'B',
+  'STRONG',
+  'I',
+  'EM',
+  'U',
+  'S',
+  'STRIKE',
+  'DEL',
+  'SUB',
+  'SUP',
+  'UL',
+  'OL',
+  'LI',
+  'A',
+  'FONT',
+  'SMALL',
+  'BIG',
+  'CODE',
+  'PRE',
+  'BLOCKQUOTE',
+  'H1',
+  'H2',
+  'H3',
+  'H4',
+  'H5',
+  'H6',
+  'TABLE',
+  'THEAD',
+  'TBODY',
+  'TR',
+  'TD',
+  'TH',
 ]);
 
-const DROP_WITH_CONTENT = new Set(['SCRIPT', 'STYLE', 'IFRAME', 'OBJECT', 'EMBED', 'TEMPLATE', 'NOSCRIPT', 'SVG', 'MATH']);
+const DROP_WITH_CONTENT = new Set([
+  'SCRIPT',
+  'STYLE',
+  'IFRAME',
+  'OBJECT',
+  'EMBED',
+  'TEMPLATE',
+  'NOSCRIPT',
+  'SVG',
+  'MATH',
+]);
 
-const BLOCKED_CSS = /url\s*\(|expression\s*\(|javascript:|@import|behavior\s*:|-moz-binding|position\s*:\s*(fixed|sticky)/i;
+const BLOCKED_CSS =
+  /url\s*\(|expression\s*\(|javascript:|@import|behavior\s*:|-moz-binding|position\s*:\s*(fixed|sticky)/i;
 
 export function sanitizeStyle(style: string): string {
   return style

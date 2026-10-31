@@ -53,8 +53,16 @@ export default function DocxRenderer({ document, source, search, view, host }: R
       } catch (error) {
         if (cancelled || isAbortError(error)) return;
         const e = toPreviewError(error, 'MALFORMED_DOCUMENT');
-        const code = e.code === 'ACCESS_DENIED' || e.code === 'FETCH_FAILED' || e.code === 'NOT_FOUND' ? e.code : 'MALFORMED_DOCUMENT';
-        hostRef.current.setError(code, code === 'MALFORMED_DOCUMENT' ? 'This Word document could not be read. It may be damaged or not a .docx file.' : e.message);
+        const code =
+          e.code === 'ACCESS_DENIED' || e.code === 'FETCH_FAILED' || e.code === 'NOT_FOUND'
+            ? e.code
+            : 'MALFORMED_DOCUMENT';
+        hostRef.current.setError(
+          code,
+          code === 'MALFORMED_DOCUMENT'
+            ? 'This Word document could not be read. It may be damaged or not a .docx file.'
+            : e.message,
+        );
       }
     })();
     return () => {
@@ -65,7 +73,9 @@ export default function DocxRenderer({ document, source, search, view, host }: R
   }, [source, hostRef]);
 
   const fitZoom =
-    view.fitMode === 'width' && pageWidth && size.width ? Math.max(0.1, Math.min(4, (size.width - PAGE_PADDING) / pageWidth)) : null;
+    view.fitMode === 'width' && pageWidth && size.width
+      ? Math.max(0.1, Math.min(4, (size.width - PAGE_PADDING) / pageWidth))
+      : null;
   const zoom = fitZoom ?? view.zoom;
   useEffect(() => {
     if (version !== null) hostRef.current.setEffectiveZoom(zoom);
@@ -74,7 +84,14 @@ export default function DocxRenderer({ document, source, search, view, host }: R
   useDomSearch(bodyRef, scrollRef, search, host, version, true);
 
   return (
-    <div ref={scrollRef} className="dsc-scroll dsc-docx-scroll" data-dsc-scroll-container="" tabIndex={0} aria-label={document.name} role="document">
+    <div
+      ref={scrollRef}
+      className="dsc-scroll dsc-docx-scroll"
+      data-dsc-scroll-container=""
+      tabIndex={0}
+      aria-label={document.name}
+      role="document"
+    >
       <div ref={styleRef} hidden />
       <div ref={bodyRef} className="dsc-docx-body" style={{ zoom }} />
     </div>
