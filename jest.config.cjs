@@ -27,6 +27,15 @@ module.exports = {
     '/node_modules/\\.pnpm/(react@|react-dom@|scheduler@|@babel|jsdom@|pdfjs-dist@|typescript@|@swc)',
   ],
   moduleNameMapper: {
+    // `REACT_VERSION=18 pnpm test` runs the whole suite against React 18.
+    ...(process.env.REACT_VERSION === '18'
+      ? {
+          '^react$': '<rootDir>/node_modules/react-18',
+          '^react/(.*)$': '<rootDir>/node_modules/react-18/$1',
+          '^react-dom$': '<rootDir>/node_modules/react-dom-18',
+          '^react-dom/(.*)$': '<rootDir>/node_modules/react-dom-18/$1',
+        }
+      : {}),
     '\\.css$': 'identity-obj-proxy',
     '^pdfjs-dist$': '<rootDir>/tests/setup/pdfjs-mock.ts',
     '^pdfjs-dist/(.*)$': '<rootDir>/tests/setup/pdfjs-mock.ts',

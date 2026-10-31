@@ -1,0 +1,47 @@
+{
+  "date": "2026-10-31T07:55:34.872Z",
+  "results": [
+    {
+      "file": "large.pdf",
+      "readyMs": 1415,
+      "searchMs": 464,
+      "domNodes": 581,
+      "heapMb": 17
+    },
+    {
+      "file": "large.csv",
+      "readyMs": 830,
+      "searchMs": 997,
+      "domNodes": 671,
+      "heapMb": 98
+    },
+    {
+      "file": "large.xlsx",
+      "readyMs": 1613,
+      "searchMs": 530,
+      "domNodes": 994,
+      "heapMb": 51
+    },
+    {
+      "file": "large.txt",
+      "readyMs": 485,
+      "searchMs": 555,
+      "domNodes": 614,
+      "heapMb": 45
+    },
+    {
+      "file": "large.json",
+      "readyMs": 730,
+      "searchMs": 631,
+      "domNodes": 735,
+      "heapMb": 61
+    },
+    {
+      "file": "large.xml",
+      "readyMs": 1328,
+      "searchMs": 543,
+      "domNodes": 937,
+      "heapMb": 30
+    }
+  ]
+}

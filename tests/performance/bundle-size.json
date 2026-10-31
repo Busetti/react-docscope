@@ -1,0 +1,187 @@
+{
+  "library": [
+    {
+      "file": "chunks/_virtual_pdf-worker-source-Dw1S5pMA.js",
+      "raw": 1292707,
+      "gzip": 378086
+    },
+    {
+      "file": "index.js",
+      "raw": 97659,
+      "gzip": 26218
+    },
+    {
+      "file": "chunks/XlsxRenderer-C6y84R3L.js",
+      "raw": 35207,
+      "gzip": 11957
+    },
+    {
+      "file": "chunks/PdfRenderer-B4WCSSST.js",
+      "raw": 21752,
+      "gzip": 6925
+    },
+    {
+      "file": "styles.css",
+      "raw": 34408,
+      "gzip": 6809
+    },
+    {
+      "file": "chunks/PptxRenderer-pq53bTGB.js",
+      "raw": 13147,
+      "gzip": 4599
+    },
+    {
+      "file": "chunks/hooks-T4lJyDMQ.js",
+      "raw": 11840,
+      "gzip": 4121
+    },
+    {
+      "file": "chunks/XmlRenderer-ivcQffM4.js",
+      "raw": 13926,
+      "gzip": 4072
+    },
+    {
+      "file": "chunks/JsonRenderer-DnxsFQur.js",
+      "raw": 10055,
+      "gzip": 3346
+    },
+    {
+      "file": "chunks/CsvRenderer-y5vG_Ps1.js",
+      "raw": 7546,
+      "gzip": 2915
+    },
+    {
+      "file": "chunks/clipboard-CFDimT0I.js",
+      "raw": 7144,
+      "gzip": 2510
+    },
+    {
+      "file": "chunks/DataGrid-CyiGuaa3.js",
+      "raw": 6457,
+      "gzip": 2284
+    },
+    {
+      "file": "chunks/search-D7FRrrwx.js",
+      "raw": 5510,
+      "gzip": 2193
+    },
+    {
+      "file": "chunks/TextRenderer-BOoOjuWv.js",
+      "raw": 5125,
+      "gzip": 2018
+    },
+    {
+      "file": "chunks/format-CPG87i0U.js",
+      "raw": 3929,
+      "gzip": 1690
+    },
+    {
+      "file": "chunks/sanitize-DcJJ71Fa.js",
+      "raw": 3495,
+      "gzip": 1589
+    },
+    {
+      "file": "chunks/ImageRenderer-DhFbnxA1.js",
+      "raw": 3650,
+      "gzip": 1507
+    },
+    {
+      "file": "chunks/DocxRenderer-BUrHix5G.js",
+      "raw": 3354,
+      "gzip": 1499
+    },
+    {
+      "file": "chunks/MarkdownRenderer-CO7iViaO.js",
+      "raw": 3145,
+      "gzip": 1438
+    },
+    {
+      "file": "chunks/VideoRenderer-uC6rlbCZ.js",
+      "raw": 1484,
+      "gzip": 792
+    }
+  ],
+  "initialGzip": 142358,
+  "lazy": [
+    {
+      "file": "_virtual_pdf-worker-source-Dw1S5pMA-CWmSELek.js",
+      "gzip": 376268
+    },
+    {
+      "file": "pdf.worker.min-Bwd5zemH.js",
+      "gzip": 364313
+    },
+    {
+      "file": "pdf-ULJPBbF3.js",
+      "gzip": 127731
+    },
+    {
+      "file": "dist-DPh8iwLJ.js",
+      "gzip": 118933
+    },
+    {
+      "file": "MarkdownRenderer-CO7iViaO-MW-DI5dW.js",
+      "gzip": 48823
+    },
+    {
+      "file": "docx-preview-CTB5-OVk.js",
+      "gzip": 48614
+    },
+    {
+      "file": "XlsxRenderer-C6y84R3L-1_SXjI6_.js",
+      "gzip": 10991
+    },
+    {
+      "file": "CsvRenderer-y5vG_Ps1-Bi0oCdUf.js",
+      "gzip": 8598
+    },
+    {
+      "file": "PdfRenderer-B4WCSSST-wgScY-rS.js",
+      "gzip": 5154
+    },
+    {
+      "file": "PptxRenderer-pq53bTGB-CF-KRRBf.js",
+      "gzip": 3409
+    },
+    {
+      "file": "XmlRenderer-ivcQffM4-D88paoG6.js",
+      "gzip": 3031
+    },
+    {
+      "file": "JsonRenderer-DnxsFQur-Dx561BS3.js",
+      "gzip": 2455
+    },
+    {
+      "file": "hooks-T4lJyDMQ-xFOOHybS.js",
+      "gzip": 2429
+    },
+    {
+      "file": "clipboard-CFDimT0I-BiNR4Org.js",
+      "gzip": 1907
+    },
+    {
+      "file": "DataGrid-CyiGuaa3-B7_EIwLF.js",
+      "gzip": 1657
+    },
+    {
+      "file": "TextRenderer-BOoOjuWv-K2jF9_yH.js",
+      "gzip": 1473
+    },
+    {
+      "file": "ImageRenderer-DhFbnxA1-2jKU2L8Y.js",
+      "gzip": 1212
+    },
+    {
+      "file": "DocxRenderer-BUrHix5G-B6VHNf1l.js",
+      "gzip": 1180
+    },
+    {
+      "file": "sanitize-DcJJ71Fa-Bxqs2L8o.js",
+      "gzip": 1102
+    },
+    {
+      "file": "VideoRenderer-uC6rlbCZ-D6Mjgl9w.js",
+      "gzip": 633
+    }
+  ]
+}

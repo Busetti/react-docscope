@@ -41,6 +41,11 @@ export const PreviewModal = forwardRef<DocumentPreviewerHandle, PreviewModalProp
     const openRef = useRef({ onOpen, onClose });
     openRef.current = { onOpen, onClose };
     const wasOpen = useRef(false);
+    // Element to return focus to after closing (the consumer's "Preview" button).
+    const returnFocus = useRef<HTMLElement | null>(null);
+    if (open && !wasOpen.current && typeof document !== 'undefined') {
+      returnFocus.current = document.activeElement as HTMLElement | null;
+    }
     useEffect(() => {
       if (open && !wasOpen.current) openRef.current.onOpen?.();
       if (!open && wasOpen.current) openRef.current.onClose?.();
@@ -66,7 +71,14 @@ export const PreviewModal = forwardRef<DocumentPreviewerHandle, PreviewModalProp
               );
               root?.focus({ preventScroll: true });
             }}
-            onEscapeKeyDown={(e) => {
+            onCloseAutoFocus={(e) => {
+            const target = returnFocus.current;
+            if (target && target.isConnected && target !== document.body) {
+              e.preventDefault();
+              target.focus({ preventScroll: true });
+            }
+          }}
+          onEscapeKeyDown={(e) => {
               if (document.fullscreenElement || workspaceRef.current?.handleEscape())
                 e.preventDefault();
             }}

@@ -19,6 +19,7 @@
     "test": "jest",
     "test:coverage": "jest --coverage && node scripts/check-coverage.mjs",
     "test:watch": "jest --watch",
+    "test:react18": "REACT_VERSION=18 jest",
     "test:e2e": "pnpm fixtures && pnpm build && pnpm --filter playground build && playwright test",
     "test:visual": "pnpm fixtures && pnpm build && pnpm --filter playground build && playwright test --project=visual",
     "test:smoke": "node scripts/smoke-test.mjs",
@@ -33,6 +34,7 @@
     "release": "pnpm build && changeset publish"
   },
   "devDependencies": {
+    "@axe-core/playwright": "^4.14.0",
     "@changesets/changelog-github": "^1.0.1",
     "@changesets/cli": "^3.0.3",
     "@eslint/js": "^10.0.1",
@@ -58,7 +60,9 @@
     "jest-environment-jsdom": "^30.5.2",
     "prettier": "^3.9.10",
     "react": "^19.3.1",
+    "react-18": "npm:react@18.3.1",
     "react-dom": "^19.3.1",
+    "react-dom-18": "npm:react-dom@18.3.1",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.72.1"
   }
