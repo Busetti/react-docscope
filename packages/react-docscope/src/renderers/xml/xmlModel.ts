@@ -53,7 +53,7 @@ export function parseXml(text: string): XmlParseResult {
     path: string,
   ): string | null => {
     const id = parentId === null ? rootId : `n${++counter}`;
-    let xmlNode: XmlNode | null = null;
+    let xmlNode: XmlNode;
     switch (node.nodeType) {
       case Node.DOCUMENT_NODE: {
         xmlNode = {

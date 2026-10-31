@@ -12,7 +12,10 @@ test('PDF search highlights every match across pages', async ({ page }) => {
   await expect(active).toBeVisible();
   // the highlight box sits on the word "invoice" in the text layer
   const hl = (await active.boundingBox())!;
-  const word = await dialog.locator('.textLayer span', { hasText: 'invoice' }).first().boundingBox();
+  const word = await dialog
+    .locator('.textLayer span', { hasText: 'invoice' })
+    .first()
+    .boundingBox();
   expect(Math.abs(hl.y - word!.y)).toBeLessThan(word!.height);
   await page.keyboard.press('Enter');
   await expect(dialog.getByRole('status').filter({ hasText: '2 of 18' })).toBeVisible();
@@ -42,7 +45,9 @@ test('keyboard navigation, focus trap and Escape', async ({ page }) => {
   await page.keyboard.press(']');
   await expect(dialog.getByRole('heading', { name: 'deck.pptx' })).toBeVisible();
   for (let i = 0; i < 40; i += 1) await page.keyboard.press('Tab');
-  expect(await page.evaluate(() => !!document.activeElement?.closest('[role="dialog"]'))).toBe(true);
+  expect(await page.evaluate(() => !!document.activeElement?.closest('[role="dialog"]'))).toBe(
+    true,
+  );
   await page.keyboard.press('Escape');
   await expect(page.getByRole('dialog')).toBeHidden();
   await expect(page.getByRole('button', { name: 'Preview sample.pdf' })).toBeFocused();
@@ -61,7 +66,9 @@ test('split-screen comparison of different formats', async ({ page }) => {
   await left.getByRole('button', { name: 'Zoom in' }).click();
   await expect(right.getByRole('button', { name: /Zoom 100%/ })).toBeVisible();
   await dialog.getByRole('button', { name: 'Swap documents' }).click();
-  await expect(dialog.getByRole('region', { name: 'Left document' }).getByRole('grid')).toBeVisible();
+  await expect(
+    dialog.getByRole('region', { name: 'Left document' }).getByRole('grid'),
+  ).toBeVisible();
   await dialog.getByRole('button', { name: 'Stacked' }).click();
   await expect(dialog.locator('.dsc-compare-panes--vertical')).toBeVisible();
   await dialog.getByRole('button', { name: 'Exit compare' }).click();
@@ -106,7 +113,9 @@ test('local files are previewed without uploading', async ({ page }) => {
   page.on('request', (r) => {
     if (r.method() !== 'GET') uploads.push(r.url());
   });
-  await page.getByTestId('local-file-input').setInputFiles(['tests/fixtures/config.json', 'tests/fixtures/photo.jpg']);
+  await page
+    .getByTestId('local-file-input')
+    .setInputFiles(['tests/fixtures/config.json', 'tests/fixtures/photo.jpg']);
   const dialog = await openPreview(page, 'config.json');
   await expect(dialog.getByRole('tree')).toContainText('"docscope"');
   expect(uploads).toEqual([]);
@@ -115,7 +124,10 @@ test('local files are previewed without uploading', async ({ page }) => {
 test('download returns the original bytes', async ({ page }) => {
   await gotoScenario(page);
   const dialog = await openPreview(page, 'budget.xlsx');
-  const [download] = await Promise.all([page.waitForEvent('download'), dialog.getByRole('button', { name: 'Download' }).click()]);
+  const [download] = await Promise.all([
+    page.waitForEvent('download'),
+    dialog.getByRole('button', { name: 'Download' }).click(),
+  ]);
   expect(download.suggestedFilename()).toBe('budget.xlsx');
 });
 
@@ -125,12 +137,16 @@ test('inline mode at narrow widths and dark theme pass axe', async ({ page }) =>
   await expect(root).toHaveAttribute('data-dsc-theme', 'dark');
   await expect(root.locator('.dsc-renderer[data-ready="true"]')).toBeVisible();
   const results = await new AxeBuilder({ page }).include('.dsc-root').analyze();
-  expect(results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' ')}`)).toEqual([]);
+  expect(
+    results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' ')}`),
+  ).toEqual([]);
 });
 
 test('modal passes axe', async ({ page }) => {
   await gotoScenario(page);
   await openPreview(page, 'budget.xlsx');
   const results = await new AxeBuilder({ page }).include('[role="dialog"]').analyze();
-  expect(results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' ')}`)).toEqual([]);
+  expect(
+    results.violations.map((v) => `${v.id}: ${v.nodes.map((n) => n.target).join(' ')}`),
+  ).toEqual([]);
 });

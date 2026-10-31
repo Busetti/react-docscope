@@ -26,15 +26,40 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
   },
   projects: [
-    { name: 'chromium', testDir: 'tests/e2e', testIgnore: /visual\.spec/, use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } } },
+    {
+      name: 'chromium',
+      testDir: 'tests/e2e',
+      testIgnore: /visual\.spec/,
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1440, height: 900 } },
+    },
     ...(process.env.E2E_ALL_BROWSERS
       ? [
-          { name: 'firefox', testDir: 'tests/e2e', testIgnore: /visual\.spec/, use: { ...devices['Desktop Firefox'], viewport: { width: 1440, height: 900 } } },
-          { name: 'webkit', testDir: 'tests/e2e', testIgnore: /visual\.spec/, use: { ...devices['Desktop Safari'], viewport: { width: 1440, height: 900 } } },
+          {
+            name: 'firefox',
+            testDir: 'tests/e2e',
+            testIgnore: /visual\.spec/,
+            use: { ...devices['Desktop Firefox'], viewport: { width: 1440, height: 900 } },
+          },
+          {
+            name: 'webkit',
+            testDir: 'tests/e2e',
+            testIgnore: /visual\.spec/,
+            use: { ...devices['Desktop Safari'], viewport: { width: 1440, height: 900 } },
+          },
         ]
       : []),
-    { name: 'visual', testDir: 'tests/e2e', testMatch: /visual\.spec/, use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } } },
-    { name: 'performance', testDir: 'tests/performance', testMatch: /\.spec\.ts$/, use: { ...devices['Desktop Chrome'] } },
+    {
+      name: 'visual',
+      testDir: 'tests/e2e',
+      testMatch: /visual\.spec/,
+      use: { ...devices['Desktop Chrome'], viewport: { width: 1280, height: 800 } },
+    },
+    {
+      name: 'performance',
+      testDir: 'tests/performance',
+      testMatch: /\.spec\.ts$/,
+      use: { ...devices['Desktop Chrome'] },
+    },
   ],
   webServer: {
     command: `pnpm --filter playground exec vite preview --port ${PORT} --strictPort`,

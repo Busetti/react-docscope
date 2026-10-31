@@ -28,11 +28,14 @@ const rows = walk(lib)
   .sort((a, b) => b.gzip - a.gzip);
 
 console.log('\nLibrary output (unminified ESM, dependencies external)');
-for (const r of rows) console.log(`  ${r.file.padEnd(52)} ${kb(r.raw).padStart(10)} ${kb(r.gzip).padStart(10)} gz`);
+for (const r of rows)
+  console.log(`  ${r.file.padEnd(52)} ${kb(r.raw).padStart(10)} ${kb(r.gzip).padStart(10)} gz`);
 
 const app = 'apps/playground/dist';
 const html = readFileSync(join(app, 'index.html'), 'utf8');
-const initial = [...html.matchAll(/(?:src|href)="\/(assets\/[^"]+\.(?:js|css))"/g)].map((m) => m[1]);
+const initial = [...html.matchAll(/(?:src|href)="\/(assets\/[^"]+\.(?:js|css))"/g)].map(
+  (m) => m[1],
+);
 const assets = walk(join(app, 'assets')).filter((f) => f.endsWith('.js'));
 const initialBytes = initial.reduce((n, f) => n + gz(readFileSync(join(app, f))), 0);
 const lazy = assets
@@ -43,6 +46,10 @@ const lazy = assets
 console.log('\nPlayground production build (minified, gzip)');
 console.log(`  initial load (React + react-docscope core + playground): ${kb(initialBytes)}`);
 console.log('  largest lazy chunks:');
-for (const l of lazy.slice(0, 12)) console.log(`    ${l.file.padEnd(58)} ${kb(l.gzip).padStart(10)}`);
+for (const l of lazy.slice(0, 12))
+  console.log(`    ${l.file.padEnd(58)} ${kb(l.gzip).padStart(10)}`);
 
-writeFileSync('tests/performance/bundle-size.json', `${JSON.stringify({ library: rows, initialGzip: initialBytes, lazy }, null, 2)}\n`);
+writeFileSync(
+  'tests/performance/bundle-size.json',
+  `${JSON.stringify({ library: rows, initialGzip: initialBytes, lazy }, null, 2)}\n`,
+);

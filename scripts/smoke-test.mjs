@@ -12,9 +12,12 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
 const root = join(import.meta.dirname, '..');
-const reactMajor = process.argv.includes('--react') ? process.argv[process.argv.indexOf('--react') + 1] : '19';
+const reactMajor = process.argv.includes('--react')
+  ? process.argv[process.argv.indexOf('--react') + 1]
+  : '19';
 const keep = process.argv.includes('--keep');
-const run = (cmd, cwd) => execSync(cmd, { cwd, stdio: 'inherit', env: { ...process.env, CI: '1' } });
+const run = (cmd, cwd) =>
+  execSync(cmd, { cwd, stdio: 'inherit', env: { ...process.env, CI: '1' } });
 
 const work = mkdtempSync(join(tmpdir(), 'docscope-smoke-'));
 console.log(`› workspace ${work} (React ${reactMajor})`);
@@ -25,7 +28,8 @@ try {
   const app = join(work, 'app');
   mkdirSync(join(app, 'src'), { recursive: true });
   mkdirSync(join(app, 'public'), { recursive: true });
-  for (const f of ['sample.pdf', 'budget.xlsx', 'readme.md']) cpSync(join(root, 'tests/fixtures', f), join(app, 'public', f));
+  for (const f of ['sample.pdf', 'budget.xlsx', 'readme.md'])
+    cpSync(join(root, 'tests/fixtures', f), join(app, 'public', f));
   const reactVersion = reactMajor === '18' ? '^18.3.1' : '^19.3.1';
   writeFileSync(
     join(app, 'package.json'),
@@ -35,7 +39,11 @@ try {
         private: true,
         type: 'module',
         scripts: { build: 'tsc --noEmit && vite build' },
-        dependencies: { 'react-docscope': `file:../${tarball}`, react: reactVersion, 'react-dom': reactVersion },
+        dependencies: {
+          'react-docscope': `file:../${tarball}`,
+          react: reactVersion,
+          'react-dom': reactVersion,
+        },
         devDependencies: {
           '@types/react': reactMajor === '18' ? '^18.3.12' : '^19.3.0',
           '@types/react-dom': reactMajor === '18' ? '^18.3.1' : '^19.3.0',
@@ -50,10 +58,32 @@ try {
   );
   writeFileSync(
     join(app, 'tsconfig.json'),
-    JSON.stringify({ compilerOptions: { target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler', jsx: 'react-jsx', strict: true, skipLibCheck: false, noEmit: true, types: ['vite/client'] }, include: ['src'] }, null, 2),
+    JSON.stringify(
+      {
+        compilerOptions: {
+          target: 'ES2022',
+          module: 'ESNext',
+          moduleResolution: 'Bundler',
+          jsx: 'react-jsx',
+          strict: true,
+          skipLibCheck: false,
+          noEmit: true,
+          types: ['vite/client'],
+        },
+        include: ['src'],
+      },
+      null,
+      2,
+    ),
   );
-  writeFileSync(join(app, 'vite.config.ts'), `import { defineConfig } from 'vite';\nimport react from '@vitejs/plugin-react';\nexport default defineConfig({ plugins: [react()] });\n`);
-  writeFileSync(join(app, 'index.html'), `<!doctype html><html><head><meta charset="utf-8"><title>smoke</title></head><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>`);
+  writeFileSync(
+    join(app, 'vite.config.ts'),
+    `import { defineConfig } from 'vite';\nimport react from '@vitejs/plugin-react';\nexport default defineConfig({ plugins: [react()] });\n`,
+  );
+  writeFileSync(
+    join(app, 'index.html'),
+    `<!doctype html><html><head><meta charset="utf-8"><title>smoke</title></head><body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body></html>`,
+  );
   // The consumer integration from the README, verbatim in spirit (~15 lines).
   writeFileSync(
     join(app, 'src/main.tsx'),
@@ -89,7 +119,11 @@ createRoot(document.getElementById('root')!).render(
   if (!playwright) console.log('ℹ playwright not available — skipping browser check');
   if (playwright) {
     const port = 4400 + Math.floor(Math.random() * 500);
-    const server = spawn('npx', ['vite', 'preview', '--port', String(port), '--strictPort'], { cwd: app, stdio: 'ignore', detached: true });
+    const server = spawn('npx', ['vite', 'preview', '--port', String(port), '--strictPort'], {
+      cwd: app,
+      stdio: 'ignore',
+      detached: true,
+    });
     for (let i = 0; i < 60; i += 1) {
       try {
         if ((await fetch(`http://localhost:${port}/`)).ok) break;
@@ -109,9 +143,13 @@ createRoot(document.getElementById('root')!).render(
       await page.getByRole('button', { name: 'Next document' }).click();
       await page.getByText('FY2026 Budget').waitFor({ timeout: 30000 });
       await page.getByRole('button', { name: 'Next document' }).click();
-      await page.getByRole('heading', { name: 'DocScope Markdown sample' }).waitFor({ timeout: 30000 });
+      await page
+        .getByRole('heading', { name: 'DocScope Markdown sample' })
+        .waitFor({ timeout: 30000 });
       if (errors.length) throw new Error(`Console errors:\n${errors.join('\n')}`);
-      console.log('✓ PDF (bundled worker), XLSX and Markdown render in Chromium with no console errors');
+      console.log(
+        '✓ PDF (bundled worker), XLSX and Markdown render in Chromium with no console errors',
+      );
     } finally {
       await browser.close();
       process.kill(-server.pid); // whole process group (npx + vite)

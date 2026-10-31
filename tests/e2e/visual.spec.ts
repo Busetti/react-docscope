@@ -4,7 +4,10 @@ import { gotoScenario, openPreview } from './helpers';
 // Screenshot baselines are generated on Linux (CI); fonts differ on other OSes.
 test.skip(process.platform !== 'linux', 'Visual baselines are Linux-only');
 
-const mask = (page: import('@playwright/test').Page) => [page.locator('.pg-log'), page.locator('.pg-code')];
+const mask = (page: import('@playwright/test').Page) => [
+  page.locator('.pg-log'),
+  page.locator('.pg-code'),
+];
 
 for (const [name, file] of [
   ['pdf', 'sample.pdf'],

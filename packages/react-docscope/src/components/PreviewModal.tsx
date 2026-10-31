@@ -72,13 +72,13 @@ export const PreviewModal = forwardRef<DocumentPreviewerHandle, PreviewModalProp
               root?.focus({ preventScroll: true });
             }}
             onCloseAutoFocus={(e) => {
-            const target = returnFocus.current;
-            if (target && target.isConnected && target !== document.body) {
-              e.preventDefault();
-              target.focus({ preventScroll: true });
-            }
-          }}
-          onEscapeKeyDown={(e) => {
+              const target = returnFocus.current;
+              if (target && target.isConnected && target !== document.body) {
+                e.preventDefault();
+                target.focus({ preventScroll: true });
+              }
+            }}
+            onEscapeKeyDown={(e) => {
               if (document.fullscreenElement || workspaceRef.current?.handleEscape())
                 e.preventDefault();
             }}

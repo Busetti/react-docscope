@@ -26,12 +26,16 @@ for (const c of CASES) {
     const t0 = Date.now();
     await page.getByRole('button', { name: `Preview ${c.file}`, exact: true }).click();
     const dialog = page.getByRole('dialog');
-    await expect(dialog.locator('.dsc-renderer[data-ready="true"]')).toBeVisible({ timeout: 60_000 });
+    await expect(dialog.locator('.dsc-renderer[data-ready="true"]')).toBeVisible({
+      timeout: 60_000,
+    });
     const readyMs = Date.now() - t0;
     await page.keyboard.press('Control+f');
     const t1 = Date.now();
     await page.keyboard.type(c.query);
-    await expect(dialog.getByRole('status').filter({ hasText: /^\d+ of / })).toBeVisible({ timeout: 60_000 });
+    await expect(dialog.getByRole('status').filter({ hasText: /^\d+ of / })).toBeVisible({
+      timeout: 60_000,
+    });
     const searchMs = Date.now() - t1;
     const domNodes = await page.evaluate(() => document.querySelectorAll('*').length);
     const heapMb = await page.evaluate(() => {
@@ -46,5 +50,8 @@ for (const c of CASES) {
 
 test.afterAll(() => {
   mkdirSync('tests/performance', { recursive: true });
-  writeFileSync('tests/performance/results.json', `${JSON.stringify({ date: new Date().toISOString(), results }, null, 2)}\n`);
+  writeFileSync(
+    'tests/performance/results.json',
+    `${JSON.stringify({ date: new Date().toISOString(), results }, null, 2)}\n`,
+  );
 });

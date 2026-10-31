@@ -77,6 +77,9 @@ export function useDocumentPreview(options: UseDocumentPreviewOptions): UseDocum
   > | null>(null);
   if (!store.current) store.current = createStore({ options, state, setState });
 
+  // Publishes the latest options/state to the portal store after every render.
+  // `setState` is only forwarded, never called here, so there is no update loop.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useLayoutEffect(() => {
     store.current!.set({ options, state, setState });
   });

@@ -17,7 +17,9 @@ test('PDF renders pages to canvas with a selectable text layer', async ({ page }
     return dark;
   });
   expect(inked).toBeGreaterThan(1000);
-  await expect(dialog.locator('.textLayer span', { hasText: 'Quarterly invoice summary' }).first()).toBeAttached();
+  await expect(
+    dialog.locator('.textLayer span', { hasText: 'Quarterly invoice summary' }).first(),
+  ).toBeAttached();
   // only nearby pages are mounted (virtualised)
   expect(await dialog.locator('.dsc-pdf-page').count()).toBeLessThan(6 + 1);
 });
@@ -34,7 +36,9 @@ test('DOCX keeps formatting, tables and images', async ({ page }) => {
 test('PPTX renders slides with text, shapes, images and tables', async ({ page }) => {
   const dialog = await openPreview(page, 'deck.pptx');
   await expect(dialog.getByRole('textbox', { name: /Page 1 of 4/ })).toBeVisible();
-  await expect(dialog.getByRole('group', { name: 'Slide 1' })).toContainText('Quarterly Business Review');
+  await expect(dialog.getByRole('group', { name: 'Slide 1' })).toContainText(
+    'Quarterly Business Review',
+  );
   await dialog.getByRole('button', { name: 'Next page' }).click();
   await expect(dialog.getByRole('textbox', { name: /Page 2 of 4/ })).toBeVisible();
   await expect(dialog.getByRole('group', { name: 'Slide 3' }).locator('img')).toBeAttached();
@@ -68,21 +72,32 @@ test('CSV, JSON, XML, Markdown, TXT, images and video', async ({ page }) => {
 
   dialog = await openPreview(page, 'readme.md');
   await expect(dialog.getByRole('heading', { name: 'DocScope Markdown sample' })).toBeVisible();
-  expect(await page.evaluate(() => (window as { __mdScriptRan?: boolean }).__mdScriptRan)).toBeUndefined();
+  expect(
+    await page.evaluate(() => (window as { __mdScriptRan?: boolean }).__mdScriptRan),
+  ).toBeUndefined();
   await page.keyboard.press('Escape');
 
   dialog = await openPreview(page, 'notes.txt');
   await expect(dialog.getByText('Line 001: meeting notes')).toBeVisible();
   await page.keyboard.press('Escape');
 
-  for (const name of ['photo.jpg', 'diagram.png', 'animation.gif', 'image.webp', 'image.avif', 'icon.svg']) {
+  for (const name of [
+    'photo.jpg',
+    'diagram.png',
+    'animation.gif',
+    'image.webp',
+    'image.avif',
+    'icon.svg',
+  ]) {
     dialog = await openPreview(page, name);
     const img = dialog.getByRole('img', { name });
     await expect(img).toBeVisible();
     expect(await img.evaluate((i: HTMLImageElement) => i.naturalWidth)).toBeGreaterThan(0);
     await page.keyboard.press('Escape');
   }
-  expect(await page.evaluate(() => (window as { __svgScriptRan?: boolean }).__svgScriptRan)).toBeUndefined();
+  expect(
+    await page.evaluate(() => (window as { __svgScriptRan?: boolean }).__svgScriptRan),
+  ).toBeUndefined();
 
   dialog = await openPreview(page, 'clip.mp4');
   const video = dialog.locator('video');

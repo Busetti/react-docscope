@@ -501,8 +501,8 @@ export function readWorkbook(data: ArrayBuffer | Uint8Array): XlsxWorkbook {
         const raw = c.value;
         const hasFormula = c.formula !== null;
         const xf = xfs[s];
-        let value: XlsxCell['value'] = null;
-        let text = '';
+        let value: XlsxCell['value'];
+        let text: string;
         let isNumber = false;
         let error = false;
         switch (t) {
