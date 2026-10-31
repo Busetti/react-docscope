@@ -1,7 +1,7 @@
 {
   "name": "react-docscope-monorepo",
   "private": true,
-  "description": "Monorepo for react-docscope — a universal, read-only React document preview library.",
+  "description": "Monorepo for react-docscope \u2014 a universal, read-only React document preview library.",
   "license": "MIT",
   "author": "Gurunath Busetti",
   "type": "module",
@@ -28,7 +28,7 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "typecheck": "pnpm -r typecheck",
+    "typecheck": "pnpm -r --filter react-docscope --filter playground --filter docs typecheck",
     "changeset": "changeset",
     "version-packages": "changeset version",
     "release": "pnpm build && changeset publish"

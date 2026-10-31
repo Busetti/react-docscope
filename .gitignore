@@ -13,3 +13,8 @@ tests/fixtures/large/
 *.log
 .env*
 !.env.example
+
+# copied into the package by prepack
+packages/react-docscope/README.md
+packages/react-docscope/LICENSE
+packages/react-docscope/THIRD_PARTY_NOTICES.md

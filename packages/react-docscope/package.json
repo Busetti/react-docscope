@@ -68,7 +68,7 @@
     "lucide-react": "^1.66.0",
     "papaparse": "^5.7.0",
     "pdfjs-dist": "^6.4.299",
-    "pptxtojson": "^2.2.0",
+    "pptxtojson": "~2.2.0",
     "react-markdown": "^10.1.0",
     "remark-gfm": "^4.0.1"
   },
