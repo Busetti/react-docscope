@@ -298,6 +298,12 @@ export interface PreviewConfig {
     scrollMode?: 'continuous' | 'single';
     /** Explicit worker URL. By default a bundled worker is created from a Blob. */
     workerSrc?: string;
+    /** Base URL of pdf.js CMaps (needed for some CJK PDFs), e.g. `/pdfjs/cmaps/`. */
+    cMapUrl?: string;
+    /** Base URL of pdf.js standard fonts, e.g. `/pdfjs/standard_fonts/`. */
+    standardFontDataUrl?: string;
+    /** Base URL of pdf.js wasm decoders (JPEG2000 / JBIG2), e.g. `/pdfjs/wasm/`. */
+    wasmUrl?: string;
     /** Pages rendered above/below the viewport. */
     overscan?: number;
     thumbnails?: boolean;
@@ -380,7 +386,8 @@ export type ResolvedPreviewConfig = Required<
   height: number | string;
   modal: Required<NonNullable<PreviewConfig['modal']>>;
   zoom: Required<NonNullable<PreviewConfig['zoom']>>;
-  pdf: Required<Omit<NonNullable<PreviewConfig['pdf']>, 'workerSrc'>> & { workerSrc?: string };
+  pdf: Required<Pick<NonNullable<PreviewConfig['pdf']>, 'scrollMode' | 'overscan' | 'thumbnails'>> &
+    Pick<NonNullable<PreviewConfig['pdf']>, 'workerSrc' | 'cMapUrl' | 'standardFontDataUrl' | 'wasmUrl'>;
   csv: { header: boolean | 'auto'; delimiter?: string };
   labels: PreviewLabels;
   shortcuts: Record<ShortcutAction, string[]>;

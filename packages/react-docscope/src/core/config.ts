@@ -172,6 +172,9 @@ export function resolveConfig(...configs: Array<PreviewConfig | undefined>): Res
       overscan: Math.round(clampNumber(merged.pdf?.overscan, d.pdf.overscan, 0, 20)),
       thumbnails: merged.pdf?.thumbnails ?? d.pdf.thumbnails,
       ...(merged.pdf?.workerSrc ? { workerSrc: merged.pdf.workerSrc } : {}),
+      ...(merged.pdf?.cMapUrl ? { cMapUrl: merged.pdf.cMapUrl } : {}),
+      ...(merged.pdf?.standardFontDataUrl ? { standardFontDataUrl: merged.pdf.standardFontDataUrl } : {}),
+      ...(merged.pdf?.wasmUrl ? { wasmUrl: merged.pdf.wasmUrl } : {}),
     },
     csv: {
       header: merged.csv?.header ?? d.csv.header,
