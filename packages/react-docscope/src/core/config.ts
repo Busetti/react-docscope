@@ -112,7 +112,7 @@ function resolveShortcuts(
   return result;
 }
 
-function clampNumber(value: unknown, fallback: number, min = -Infinity, max = Infinity): number {
+function clampNumber(value: unknown, fallback: number, min: number, max = Infinity): number {
   return typeof value === 'number' && Number.isFinite(value)
     ? Math.min(max, Math.max(min, value))
     : fallback;

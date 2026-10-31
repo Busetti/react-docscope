@@ -113,3 +113,61 @@ describe('xlsx reader', () => {
     expect(parseRef('bad')).toEqual({ row: -1, col: -1 });
   });
 });
+
+describe('xlsx styling', () => {
+  it('reads theme tints, indexed colours, borders, alignment, 1904 dates and hidden rows/cols', () => {
+    const wb = readWorkbook(fixtureBuffer('styled.xlsx'));
+    expect(wb.date1904).toBe(true);
+    const s = wb.readSheet(0);
+    const cell = (r: number, c: number) => s.rows.get(r)!.get(c)!;
+    expect(cell(0, 0).style).toMatchObject({
+      fontStyle: 'italic',
+      textDecoration: 'underline line-through',
+    });
+    expect(cell(0, 0).style!.backgroundColor).toMatch(/^#[0-9A-F]{6}$/);
+    expect(cell(0, 0).style!.fontSize).toMatch(/em$/);
+    expect(cell(0, 1).style!.backgroundColor).toBe('#FF0000');
+    expect(cell(0, 2).style!.backgroundColor).toMatch(/^#[0-9A-F]{6}$/);
+    expect(cell(1, 0).style).toMatchObject({
+      borderLeft: '1px solid #FF0000',
+      borderRight: '2px solid #000',
+      borderTop: '1px dashed #000',
+      borderBottom: '3px double #000',
+      justifyContent: 'flex-end',
+      alignItems: 'flex-start',
+      whiteSpace: 'pre-wrap',
+      paddingInlineStart: '2em',
+    });
+    expect(cell(1, 1).style).toMatchObject({ justifyContent: 'flex-start', alignItems: 'center' });
+    expect(cell(1, 2).style).toMatchObject({ justifyContent: 'center' });
+    expect(cell(2, 0).text).toBe('2026-03-01');
+    expect(cell(2, 1).text).toBe('TRUE');
+    expect(cell(2, 2).formula).toBe('1/0');
+    expect(s.rowHeights.get(3)).toBe(0);
+    expect(s.colWidths.get(3)).toBe(0);
+    expect(s.rowHeights.get(4)).toBe(40);
+    expect(s.defaultColWidth).toBe(89);
+    expect(s.defaultRowHeight).toBe(24);
+  });
+});
+
+describe('more number formats', () => {
+  it.each([
+    [0.5, 'mm:ss', '00:00'],
+    [0.0104166, '[mm]:ss', '14:59'],
+    [0.0001, '[ss]', '9'],
+    [46037.5, 'h:mm:ss.00', '12:00:00.00'],
+    [46037.25, 'h A/P', '6 A'],
+    [46037, 'yy ddd', '26 Thu'],
+    [46037, 'd/m', '15/1'],
+    [1.5, '# ?/?', '1.5'],
+    [-5, '0;-0;0', '-5'],
+    [0, '0.00;-0.00', '0.00'],
+    [-0.0001, '0.00', '0.00'],
+    [123, '_(0_)', ' 123 '],
+    [12, '0*-', '12'],
+    [5, '[>10]"big";"small"', 'big'],
+  ])('%p with %p → %p', (v, f, out) => {
+    expect(formatCellValue(v, f)).toBe(out);
+  });
+});

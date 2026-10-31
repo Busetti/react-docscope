@@ -378,12 +378,56 @@ def make_video() -> None:
                    check=True)
 
 
+def make_styled_xlsx() -> None:
+    """Workbook exercising styling paths: theme tints, indexed colours, borders, 1904 dates."""
+    import datetime as dt
+
+    from openpyxl import Workbook
+    from openpyxl.styles import Alignment, Border, Color, Font, PatternFill, Side
+    from openpyxl.utils.datetime import CALENDAR_MAC_1904
+
+    wb = Workbook()
+    wb.epoch = CALENDAR_MAC_1904
+    ws = wb.active
+    ws.title = "Styles"
+    ws["A1"] = "theme tint"
+    ws["A1"].fill = PatternFill("solid", fgColor=Color(theme=4, tint=0.4))
+    ws["A1"].font = Font(color=Color(theme=1), italic=True, underline="single", strike=True, size=14)
+    ws["B1"] = "indexed"
+    ws["B1"].fill = PatternFill("solid", fgColor=Color(indexed=10))
+    ws["C1"] = "darker"
+    ws["C1"].fill = PatternFill("solid", fgColor=Color(theme=5, tint=-0.25))
+    thin = Side(style="thin", color="FF0000")
+    ws["A2"] = "bordered"
+    ws["A2"].border = Border(left=thin, right=Side(style="medium"), top=Side(style="dashed"), bottom=Side(style="double"))
+    ws["A2"].alignment = Alignment(horizontal="right", vertical="top", wrap_text=True, indent=2)
+    ws["B2"] = 1234.5
+    ws["B2"].alignment = Alignment(horizontal="left", vertical="center")
+    ws["C2"] = "centered"
+    ws["C2"].alignment = Alignment(horizontal="center")
+    ws["A3"] = dt.date(2026, 3, 1)
+    ws["A3"].number_format = "yyyy-mm-dd"
+    ws["B3"] = True
+    ws["C3"] = "=1/0"
+    ws.row_dimensions[4].hidden = True
+    ws["A4"] = "hidden row"
+    ws.column_dimensions["D"].hidden = True
+    ws["D1"] = "hidden col"
+    ws.sheet_format.defaultColWidth = 12
+    ws.sheet_format.defaultRowHeight = 18
+    ws.row_dimensions[5].height = 30
+    ws["A5"] = "tall row"
+    wb.save(out("styled.xlsx"))
+
+
+
 if __name__ == "__main__":
     make_images()
     make_pdfs()
     make_docx()
     make_pptx()
     make_xlsx()
+    make_styled_xlsx()
     make_text()
     make_video()
     for f in sorted(os.listdir(ROOT)):

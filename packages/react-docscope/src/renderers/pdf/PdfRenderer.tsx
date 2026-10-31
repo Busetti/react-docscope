@@ -326,7 +326,8 @@ export default function PdfRenderer({
   const pagesToRender: number[] = [];
   if (pdf) {
     if (single) pagesToRender.push(refIndex);
-    else for (let i = range[0]; i <= range[1]; i += 1) pagesToRender.push(i);
+    else
+      for (let i = range[0]; i <= Math.min(range[1], pageCount - 1); i += 1) pagesToRender.push(i);
   }
 
   return (
@@ -504,7 +505,14 @@ const PdfPage = memo(function PdfPage({
   useLayoutEffect(() => {
     const textDiv = textRef.current;
     const pageEl = pageRef.current;
-    if (!textReady || !textDiv || !pageEl || !pageText || !matches?.length) {
+    if (
+      !textReady ||
+      !textDiv ||
+      !pageEl ||
+      !pageText ||
+      !matches?.length ||
+      typeof Range.prototype.getClientRects !== 'function'
+    ) {
       setMeasured(null);
       return;
     }

@@ -14,10 +14,10 @@ export function saveBlob(blob: Blob, filename: string): void {
   }
 }
 
-function clickLink(href: string, filename?: string): void {
+function clickLink(href: string, filename: string): void {
   const a = document.createElement('a');
   a.href = href;
-  if (filename) a.download = filename;
+  a.download = filename;
   a.rel = 'noopener';
   a.style.display = 'none';
   document.body.appendChild(a);

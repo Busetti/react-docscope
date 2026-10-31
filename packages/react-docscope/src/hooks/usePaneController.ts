@@ -193,6 +193,8 @@ export function usePaneController(
     reason: 'initial',
   });
   const [useFallback, setUseFallback] = useState(false);
+  // Once the user explicitly asks for the original, never switch back automatically.
+  const [preferOriginal, setPreferOriginal] = useState(false);
   const [view, setView] = useState<ViewState>(() => initialView(undefined, env));
   const [searchOpen, setSearchOpen] = useState(false);
   const [searchInput, setSearchInput] = useState('');
@@ -215,6 +217,7 @@ export function usePaneController(
   if ((document?.id ?? null) !== lastDocId.current) {
     lastDocId.current = document?.id ?? null;
     if (useFallback) setUseFallback(false);
+    if (preferOriginal) setPreferOriginal(false);
     if (attempt.n !== 0) setAttempt({ n: 0, reason: 'initial' });
     if (activeIndex !== -1) setActiveIndex(-1);
   }
@@ -238,7 +241,7 @@ export function usePaneController(
     setView(initialView(def, env));
     if (!def) {
       dispatch({ type: 'unsupported' });
-      if (fallback && !useFallback) setUseFallback(true);
+      if (fallback && !useFallback && !preferOriginal) setUseFallback(true);
       else
         optionsRef.current.onError?.(
           {
@@ -296,8 +299,8 @@ export function usePaneController(
   envRef.current = env;
   const renderedRef = useRef(rendered);
   renderedRef.current = rendered;
-  const fallbackRef = useRef({ fallback, useFallback });
-  fallbackRef.current = { fallback, useFallback };
+  const fallbackRef = useRef({ fallback, useFallback, preferOriginal });
+  fallbackRef.current = { fallback, useFallback, preferOriginal };
 
   const host = useMemo<RendererHost>(() => {
     const gen = generation.current;
@@ -413,7 +416,11 @@ export function usePaneController(
         setActiveIndex(-1);
       },
       retry: () => setAttempt((a) => ({ n: a.n + 1, reason: 'retry' })),
-      toggleFallback: () => setUseFallback((u) => !u),
+      toggleFallback: () => {
+        const using = fallbackRef.current.useFallback;
+        setPreferOriginal(using);
+        setUseFallback(!using);
+      },
       download: async () => {
         const doc = document;
         if (!doc) return;

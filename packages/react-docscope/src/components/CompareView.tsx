@@ -289,7 +289,9 @@ function ComparePaneSlot({
     onViewChange: (view) => onViewChange(slot, view),
   });
   const labels = env.config.labels;
-  registerController(slot, controller);
+  useEffect(() => {
+    registerController(slot, controller);
+  });
   useEffect(() => () => registerController(slot, null), [slot, registerController]);
 
   const applied = useRef(0);

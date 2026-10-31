@@ -55,7 +55,18 @@ const MONTHS = [
 const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 /** Splits a format into sections on `;` outside quotes / brackets / escapes. */
+const sectionCache = new Map<string, string[]>();
+
 export function splitSections(format: string): string[] {
+  const hit = sectionCache.get(format);
+  if (hit) return hit;
+  const out = splitSectionsUncached(format);
+  if (sectionCache.size > 500) sectionCache.clear();
+  sectionCache.set(format, out);
+  return out;
+}
+
+function splitSectionsUncached(format: string): string[] {
   const out: string[] = [];
   let cur = '';
   let quoted = false;
@@ -260,50 +271,93 @@ function formatNumberPattern(value: number, pattern: string): string {
   return str + '%'.repeat(percentCount);
 }
 
+interface CompiledSection {
+  kind: 'date' | 'general' | 'literal' | 'number';
+  section: string;
+  prefix: string;
+  suffix: string;
+  pattern: string;
+}
+
+const compiledCache = new Map<string, CompiledSection>();
+
+/** Pre-parses a format section once; cells then only run the cheap numeric part. */
+function compileSection(section: string): CompiledSection {
+  const hit = compiledCache.get(section);
+  if (hit) return hit;
+  let compiled: CompiledSection;
+  if (isDateFormat(section))
+    compiled = { kind: 'date', section, prefix: '', suffix: '', pattern: '' };
+  else {
+    const s = section
+      .replace(/\[(Red|Black|Blue|Green|White|Yellow|Magenta|Cyan|Color\s*\d+)\]/gi, '')
+      .replace(/\[[<>=][^\]]*\]/g, '');
+    // Fractions (`# ?/?`) are not implemented: show the General value rather than a rounded integer.
+    if (/^\s*General\s*$/i.test(s) || /[0#?]\s*\/\s*[0#?\d]/.test(stripLiterals(s)))
+      compiled = { kind: 'general', section, prefix: '', suffix: '', pattern: '' };
+    else if (!/[0#?]/.test(stripLiterals(s)))
+      compiled = { kind: 'literal', section, prefix: literal(s), suffix: '', pattern: '' };
+    else {
+      let first = -1;
+      let last = -1;
+      let quoted = false;
+      for (let i = 0; i < s.length; i += 1) {
+        const ch = s[i]!;
+        if (ch === '"') quoted = !quoted;
+        if (quoted) continue;
+        if (ch === '\\' || ch === '_' || ch === '*') {
+          i += 1;
+          continue;
+        }
+        if (ch === '[') {
+          i = Math.max(i, s.indexOf(']', i));
+          continue;
+        }
+        if (/[0#?]/.test(ch)) {
+          if (first === -1) first = i;
+          last = i;
+        }
+      }
+      let end = last + 1;
+      // Include %, decimal and scientific suffixes immediately after the last digit placeholder.
+      const tail = /^(?:[.,%]|E[+-][0#?]+)*/i.exec(s.slice(end))?.[0] ?? '';
+      end += tail.length;
+      let start = first;
+      while (start > 0 && /[,.]/.test(s[start - 1]!)) start -= 1;
+      compiled = {
+        kind: 'number',
+        section,
+        prefix: literal(s.slice(0, start)),
+        suffix: literal(s.slice(end)),
+        pattern: s.slice(start, end),
+      };
+    }
+  }
+  if (compiledCache.size > 1000) compiledCache.clear();
+  compiledCache.set(section, compiled);
+  return compiled;
+}
+
 function applySection(
   value: number,
   section: string,
   date1904: boolean,
   isNegativeSection: boolean,
 ): string {
-  if (isDateFormat(section)) return formatDate(value, section, date1904);
-  const s = section
-    .replace(/\[(Red|Black|Blue|Green|White|Yellow|Magenta|Cyan|Color\s*\d+)\]/gi, '')
-    .replace(/\[[<>=][^\]]*\]/g, '');
-  if (/^\s*General\s*$/i.test(s)) return formatGeneral(value);
-  if (!/[0#?]/.test(stripLiterals(s))) return literal(s);
-  // Locate the numeric pattern span.
-  let first = -1;
-  let last = -1;
-  let quoted = false;
-  for (let i = 0; i < s.length; i += 1) {
-    const ch = s[i]!;
-    if (ch === '"') quoted = !quoted;
-    if (quoted) continue;
-    if (ch === '\\' || ch === '_' || ch === '*') {
-      i += 1;
-      continue;
-    }
-    if (ch === '[') {
-      i = Math.max(i, s.indexOf(']', i));
-      continue;
-    }
-    if (/[0#?]/.test(ch)) {
-      if (first === -1) first = i;
-      last = i;
+  const c = compileSection(section);
+  switch (c.kind) {
+    case 'date':
+      return formatDate(value, section, date1904);
+    case 'general':
+      return formatGeneral(value);
+    case 'literal':
+      return c.prefix;
+    default: {
+      const num = formatNumberPattern(Math.abs(value), c.pattern);
+      const sign = value < 0 && !isNegativeSection && /[1-9]/.test(num) ? '-' : '';
+      return `${sign}${c.prefix}${num}${c.suffix}`;
     }
   }
-  let end = last + 1;
-  // Include %, decimal and scientific suffixes immediately after the last digit placeholder.
-  const tail = /^(?:[.,%]|E[+-][0#?]+)*/i.exec(s.slice(end))?.[0] ?? '';
-  end += tail.length;
-  let start = first;
-  while (start > 0 && /[,.]/.test(s[start - 1]!)) start -= 1;
-  const prefix = literal(s.slice(0, start));
-  const suffix = literal(s.slice(end));
-  const num = formatNumberPattern(Math.abs(value), s.slice(start, end));
-  const sign = value < 0 && !isNegativeSection && /[1-9]/.test(num) ? '-' : '';
-  return `${sign}${prefix}${num}${suffix}`;
 }
 
 /** Formats a cell value with an Excel number format code. */

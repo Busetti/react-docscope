@@ -1,6 +1,7 @@
 import { unzipSync, strFromU8 } from 'fflate';
 import type { CSSProperties } from 'react';
 import { BUILTIN_FORMATS, formatCellValue, isDateFormat } from './numberFormat';
+import { scanElements, scanRows, scanSharedStrings } from './xmlScan';
 
 /**
  * Minimal, read-only XLSX (Office Open XML SpreadsheetML) reader.
@@ -381,19 +382,7 @@ function styleToCss(
 
 function readSharedStrings(files: Record<string, Uint8Array>): string[] {
   const bytes = files['xl/sharedStrings.xml'];
-  if (!bytes) return [];
-  const doc = parseXmlDoc(strFromU8(bytes));
-  return els(doc, 'si').map(readRichText);
-}
-
-function readRichText(el: Element): string {
-  // Concatenate <t> descendants that are not phonetic runs.
-  let out = '';
-  for (const t of els(el, 't')) {
-    if (t.parentElement?.localName === 'rPh') continue;
-    out += t.textContent ?? '';
-  }
-  return out;
+  return bytes ? scanSharedStrings(strFromU8(bytes)) : [];
 }
 
 function colWidthPx(width: number): number {
@@ -451,6 +440,13 @@ export function readWorkbook(data: ArrayBuffer | Uint8Array): XlsxWorkbook {
   const shared = readSharedStrings(files);
   const baseFont = xfs[0]?.font?.size ?? 11;
   const cache = new Map<number, XlsxSheet>();
+  // Cell styles are shared objects: compute each (style, numeric) combination once.
+  const styleCache = new Map<string, CSSProperties | undefined>();
+  const cssFor = (s: number, isNumber: boolean): CSSProperties | undefined => {
+    const key = `${s}|${isNumber ? 1 : 0}`;
+    if (!styleCache.has(key)) styleCache.set(key, styleToCss(xfs[s], baseFont, isNumber));
+    return styleCache.get(key);
+  };
 
   const readSheet = (index: number): XlsxSheet => {
     const hit = cache.get(index);
@@ -459,53 +455,51 @@ export function readWorkbook(data: ArrayBuffer | Uint8Array): XlsxWorkbook {
     if (!info) throw new Error(`Sheet ${index} does not exist.`);
     const bytesForSheet = files[info.path];
     if (!bytesForSheet) throw new Error(`Sheet "${info.name}" is missing from the archive.`);
-    const doc = parseXmlDoc(strFromU8(bytesForSheet));
+    const xml = strFromU8(bytesForSheet);
+    if (!/<(?:\w+:)?worksheet\b/.test(xml))
+      throw new Error(`Sheet "${info.name}" is not a worksheet (chart sheets are not supported).`);
     const rows = new Map<number, Map<number, XlsxCell>>();
     const rowHeights = new Map<number, number>();
     const colWidths = new Map<number, number>();
     let maxRow = -1;
     let maxCol = -1;
     let cellCount = 0;
+    const truthy = (v: string | undefined) => v === '1' || v === 'true';
 
-    const fmtPr = els(doc, 'sheetFormatPr')[0];
-    const defaultColWidth = fmtPr?.getAttribute('defaultColWidth')
-      ? colWidthPx(Number(fmtPr.getAttribute('defaultColWidth')))
-      : 64;
-    const defaultRowHeight = fmtPr?.getAttribute('defaultRowHeight')
-      ? Math.round((Number(fmtPr.getAttribute('defaultRowHeight')) * 4) / 3)
+    const fmtPr = scanElements(xml, 'sheetFormatPr')[0];
+    const defaultColWidth = fmtPr?.defaultColWidth ? colWidthPx(Number(fmtPr.defaultColWidth)) : 64;
+    const defaultRowHeight = fmtPr?.defaultRowHeight
+      ? Math.round((Number(fmtPr.defaultRowHeight) * 4) / 3)
       : 20;
 
-    for (const col of els(doc, 'col')) {
-      const min = Number(col.getAttribute('min'));
-      const max = Math.min(Number(col.getAttribute('max')), min + 16384);
-      const hidden = col.getAttribute('hidden') === '1' || col.getAttribute('hidden') === 'true';
-      const width = Number(col.getAttribute('width'));
+    for (const col of scanElements(xml, 'col')) {
+      const min = Number(col.min);
+      const max = Math.min(Number(col.max), min + 16384);
+      const width = Number(col.width);
       for (let c = min - 1; c < max; c += 1) {
-        if (hidden) colWidths.set(c, 0);
-        else if (Number.isFinite(width) && col.hasAttribute('width'))
+        if (truthy(col.hidden)) colWidths.set(c, 0);
+        else if (col.width !== undefined && Number.isFinite(width))
           colWidths.set(c, colWidthPx(width));
       }
     }
 
     let implicitRow = -1;
-    for (const rowEl of els(doc, 'row')) {
-      const r = rowEl.hasAttribute('r') ? Number(rowEl.getAttribute('r')) - 1 : implicitRow + 1;
+    for (const rowEl of scanRows(xml)) {
+      const r = rowEl.attrs.r ? Number(rowEl.attrs.r) - 1 : implicitRow + 1;
       implicitRow = r;
-      if (rowEl.getAttribute('hidden') === '1' || rowEl.getAttribute('hidden') === 'true')
-        rowHeights.set(r, 0);
-      else if (rowEl.hasAttribute('ht') && rowEl.getAttribute('customHeight') !== '0') {
-        rowHeights.set(r, Math.round((Number(rowEl.getAttribute('ht')) * 4) / 3));
+      if (truthy(rowEl.attrs.hidden)) rowHeights.set(r, 0);
+      else if (rowEl.attrs.ht && rowEl.attrs.customHeight !== '0') {
+        rowHeights.set(r, Math.round((Number(rowEl.attrs.ht) * 4) / 3));
       }
       let implicitCol = -1;
-      for (const c of children(rowEl, 'c')) {
-        const ref = c.getAttribute('r');
+      for (const c of rowEl.cells) {
+        const ref = c.attrs.r;
         const pos = ref ? parseRef(ref) : { row: r, col: implicitCol + 1 };
         implicitCol = pos.col;
-        const t = c.getAttribute('t') ?? 'n';
-        const s = Number(c.getAttribute('s') ?? 0);
-        const vEl = child(c, 'v');
-        const fEl = child(c, 'f');
-        const raw = vEl?.textContent ?? null;
+        const t = c.attrs.t ?? 'n';
+        const s = Number(c.attrs.s ?? 0);
+        const raw = c.value;
+        const hasFormula = c.formula !== null;
         const xf = xfs[s];
         let value: XlsxCell['value'] = null;
         let text = '';
@@ -516,12 +510,10 @@ export function readWorkbook(data: ArrayBuffer | Uint8Array): XlsxWorkbook {
             value = raw !== null ? (shared[Number(raw)] ?? '') : '';
             text = formatCellValue(value, xf?.numFmt ?? 'General');
             break;
-          case 'inlineStr': {
-            const is = child(c, 'is');
-            value = is ? readRichText(is) : (raw ?? '');
+          case 'inlineStr':
+            value = c.inline ?? raw ?? '';
             text = value;
             break;
-          }
           case 'str':
             value = raw ?? '';
             text = value;
@@ -559,20 +551,20 @@ export function readWorkbook(data: ArrayBuffer | Uint8Array): XlsxWorkbook {
             }
           }
         }
-        const style = styleToCss(xf, baseFont, isNumber);
-        if (value === null && !style && !fEl) continue;
+        const style = cssFor(s, isNumber);
+        if (value === null && !style && !hasFormula) continue;
         let rowMap = rows.get(pos.row);
         if (!rowMap) {
           rowMap = new Map();
           rows.set(pos.row, rowMap);
         }
         const cell: XlsxCell = { value, text };
-        if (fEl?.textContent) cell.formula = fEl.textContent;
+        if (c.formula) cell.formula = c.formula;
         if (style) cell.style = error ? { ...style, color: '#c00' } : style;
         else if (error) cell.style = { color: '#c00' };
         if (error) cell.error = true;
         rowMap.set(pos.col, cell);
-        if (value !== null || fEl) {
+        if (value !== null || hasFormula) {
           if (pos.row > maxRow) maxRow = pos.row;
           if (pos.col > maxCol) maxCol = pos.col;
         }
@@ -581,9 +573,9 @@ export function readWorkbook(data: ArrayBuffer | Uint8Array): XlsxWorkbook {
       }
     }
 
-    const merges = els(doc, 'mergeCell')
+    const merges = scanElements(xml, 'mergeCell')
       .map((m) => {
-        const [a, b] = (m.getAttribute('ref') ?? '').split(':');
+        const [a, b] = (m.ref ?? '').split(':');
         const p1 = parseRef(a ?? '');
         const p2 = parseRef(b ?? a ?? '');
         return { r1: p1.row, c1: p1.col, r2: p2.row, c2: p2.col };

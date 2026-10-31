@@ -227,10 +227,21 @@ export const PreviewWorkspace = forwardRef<DocumentPreviewerHandle, WorkspacePro
 
     const rootRef = useRef<HTMLDivElement>(null);
     const [portalEl, setPortalEl] = useState<HTMLDivElement | null>(null);
+    const setRootRef = useCallback((el: HTMLDivElement | null) => {
+      rootRef.current = el;
+      setPortalEl(el);
+    }, []);
     const fullscreen = useFullscreen(rootRef);
     const theme = useResolvedTheme(config.theme);
     const compareControllers = useRef(new Map<string, PaneController>());
     const focusedSlot = useRef<string | null>(null);
+    const registerController = useCallback((slot: string, c: PaneController | null) => {
+      if (c) compareControllers.current.set(slot, c);
+      else compareControllers.current.delete(slot);
+    }, []);
+    const onFocusSlot = useCallback((slot: string) => {
+      focusedSlot.current = slot;
+    }, []);
 
     const goTo = useCallback(
       (delta: number) => {
@@ -341,10 +352,7 @@ export const PreviewWorkspace = forwardRef<DocumentPreviewerHandle, WorkspacePro
 
     return (
       <div
-        ref={(el) => {
-          rootRef.current = el;
-          setPortalEl(el);
-        }}
+        ref={setRootRef}
         className={`dsc-root dsc-root--${variant}${fullscreen.isFullscreen ? ' dsc-root--fullscreen' : ''}${config.className ? ` ${config.className}` : ''}${className ? ` ${className}` : ''}`}
         data-dsc-theme={theme}
         style={rootStyle}
@@ -358,7 +366,7 @@ export const PreviewWorkspace = forwardRef<DocumentPreviewerHandle, WorkspacePro
         <PortalContainerContext.Provider value={portalEl}>
           <Tooltip.Provider delayDuration={500} skipDelayDuration={200}>
             {/* Header */}
-            <header className="dsc-header">
+            <div className="dsc-header">
               <div className="dsc-title-block">
                 {renderTitle ? renderTitle(title) : <h2 className="dsc-title">{title}</h2>}
                 {subtitle && <span className="dsc-subtitle">{subtitle}</span>}
@@ -408,7 +416,7 @@ export const PreviewWorkspace = forwardRef<DocumentPreviewerHandle, WorkspacePro
                   className="dsc-close"
                 />
               )}
-            </header>
+            </div>
 
             {compare ? (
               <CompareView
@@ -420,13 +428,8 @@ export const PreviewWorkspace = forwardRef<DocumentPreviewerHandle, WorkspacePro
                   select(compare.left);
                   setCompare(null);
                 }}
-                registerController={(slot, c) => {
-                  if (c) compareControllers.current.set(slot, c);
-                  else compareControllers.current.delete(slot);
-                }}
-                onFocusSlot={(slot) => {
-                  focusedSlot.current = slot;
-                }}
+                registerController={registerController}
+                onFocusSlot={onFocusSlot}
                 callbacks={{ onError, onLoad, onDownload }}
               />
             ) : (
@@ -494,14 +497,14 @@ export const PreviewWorkspace = forwardRef<DocumentPreviewerHandle, WorkspacePro
                       labels={labels}
                     />
                   )}
-                  <main className="dsc-main">
+                  <div className="dsc-main">
                     <PaneView
                       controller={pane}
                       config={config}
                       labels={labels}
                       canDownload={canDownload}
                     />
-                  </main>
+                  </div>
                   {config.metadata && detailsOpen && active && (
                     <MetadataPanel
                       document={active}

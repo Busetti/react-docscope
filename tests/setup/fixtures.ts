@@ -17,7 +17,10 @@ export function fixtureBlob(name: string, type = ''): Blob {
 }
 
 /** Minimal fetch Response stand-in for jsdom. */
-export function mockResponse(body: BlobPart | null, init: { status?: number; type?: string; length?: number } = {}): Response {
+export function mockResponse(
+  body: BlobPart | null,
+  init: { status?: number; type?: string; length?: number } = {},
+): Response {
   const status = init.status ?? 200;
   const blob = new Blob(body === null ? [] : [body], { type: init.type ?? '' });
   const headers = new Map<string, string>();

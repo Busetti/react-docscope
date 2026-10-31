@@ -273,7 +273,7 @@ const VALIGN: Record<string, CSSProperties['justifyContent']> = {
   bottom: 'flex-end',
 };
 
-function SlideElement({ el }: { el: PptxElement }) {
+export function SlideElement({ el }: { el: PptxElement }) {
   switch (el.type) {
     case 'text':
     case 'shape': {

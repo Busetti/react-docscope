@@ -19,7 +19,9 @@ function write(name, producer) {
   const t = performance.now();
   const data = producer();
   writeFileSync(file, data);
-  console.log(`${name.padEnd(18)} ${(statSync(file).size / 1024 / 1024).toFixed(1).padStart(6)} MB  ${(performance.now() - t).toFixed(0)} ms`);
+  console.log(
+    `${name.padEnd(18)} ${(statSync(file).size / 1024 / 1024).toFixed(1).padStart(6)} MB  ${(performance.now() - t).toFixed(0)} ms`,
+  );
 }
 
 /* ---------------------------------------------------------------- PDF */
@@ -42,7 +44,11 @@ function pdf(pages) {
       }),
     ].join('\n');
     const content = add(`<< /Length ${Buffer.byteLength(lines)} >>\nstream\n${lines}\nendstream`);
-    kids.push(add(`<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 ${font} 0 R >> >> /Contents ${content} 0 R >>`));
+    kids.push(
+      add(
+        `<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 ${font} 0 R >> >> /Contents ${content} 0 R >>`,
+      ),
+    );
   }
   objs[1] = `<< /Type /Pages /Kids [${kids.map((k) => `${k} 0 R`).join(' ')}] /Count ${pages} >>`;
   let out = '%PDF-1.4\n';
@@ -71,12 +77,16 @@ function colName(i) {
 }
 
 function xlsx(rows, cols) {
-  const head = Array.from({ length: cols }, (_, c) => `<c r="${colName(c)}1" t="inlineStr" s="1"><is><t>Column ${c + 1}</t></is></c>`).join('');
+  const head = Array.from(
+    { length: cols },
+    (_, c) => `<c r="${colName(c)}1" t="inlineStr" s="1"><is><t>Column ${c + 1}</t></is></c>`,
+  ).join('');
   const body = [];
   body.push(`<row r="1">${head}</row>`);
   for (let r = 2; r <= rows; r += 1) {
     let cells = `<c r="A${r}" t="inlineStr"><is><t>${r % 997 === 0 ? 'needle' : `Item ${r}`}</t></is></c>`;
-    for (let c = 1; c < cols; c += 1) cells += `<c r="${colName(c)}${r}" s="2"><v>${(r * (c + 1) * 1.5).toFixed(2)}</v></c>`;
+    for (let c = 1; c < cols; c += 1)
+      cells += `<c r="${colName(c)}${r}" s="2"><v>${(r * (c + 1) * 1.5).toFixed(2)}</v></c>`;
     body.push(`<row r="${r}">${cells}</row>`);
   }
   const sheet = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main"><cols><col min="1" max="1" width="18" customWidth="1"/></cols><sheetData>${body.join('')}</sheetData></worksheet>`;
@@ -108,24 +118,39 @@ write('large.pdf', () => pdf(400));
 write('large.csv', () => {
   const lines = ['id,name,email,city,amount,status'];
   for (let i = 1; i <= 200_000; i += 1) {
-    lines.push(`${i},Customer ${i},customer${i}@example.com,${cities[i % 6]},${(i * 3.7).toFixed(2)},${i % 1234 === 0 ? 'needle' : 'ok'}`);
+    lines.push(
+      `${i},Customer ${i},customer${i}@example.com,${cities[i % 6]},${(i * 3.7).toFixed(2)},${i % 1234 === 0 ? 'needle' : 'ok'}`,
+    );
   }
   return `${lines.join('\n')}\n`;
 });
 write('large.xlsx', () => xlsx(20_000, 12));
 write('large.txt', () => {
   const lines = [];
-  for (let i = 1; i <= 200_000; i += 1) lines.push(`${String(i).padStart(6, '0')} INFO request id=${i * 7919} path=/api/items/${i % 500} took=${i % 97}ms${i % 5000 === 0 ? ' needle' : ''}`);
+  for (let i = 1; i <= 200_000; i += 1)
+    lines.push(
+      `${String(i).padStart(6, '0')} INFO request id=${i * 7919} path=/api/items/${i % 500} took=${i % 97}ms${i % 5000 === 0 ? ' needle' : ''}`,
+    );
   return `${lines.join('\n')}\n`;
 });
 write('large.json', () =>
   JSON.stringify({
     generated: true,
-    items: Array.from({ length: 20_000 }, (_, i) => ({ id: i, name: `Item ${i}`, tags: ['a', 'b', i % 1000 === 0 ? 'needle' : 'c'], price: i * 1.25, active: i % 2 === 0 })),
+    items: Array.from({ length: 20_000 }, (_, i) => ({
+      id: i,
+      name: `Item ${i}`,
+      tags: ['a', 'b', i % 1000 === 0 ? 'needle' : 'c'],
+      price: i * 1.25,
+      active: i % 2 === 0,
+    })),
   }),
 );
 write('large.xml', () => {
-  const items = Array.from({ length: 20_000 }, (_, i) => `  <item id="${i}" active="${i % 2 === 0}"><name>Item ${i}</name><price>${(i * 1.25).toFixed(2)}</price>${i % 1000 === 0 ? '<note>needle</note>' : ''}</item>`);
+  const items = Array.from(
+    { length: 20_000 },
+    (_, i) =>
+      `  <item id="${i}" active="${i % 2 === 0}"><name>Item ${i}</name><price>${(i * 1.25).toFixed(2)}</price>${i % 1000 === 0 ? '<note>needle</note>' : ''}</item>`,
+  );
   return `<?xml version="1.0"?>\n<items>\n${items.join('\n')}\n</items>\n`;
 });
 console.log(`Large fixtures ready in ${root}`);

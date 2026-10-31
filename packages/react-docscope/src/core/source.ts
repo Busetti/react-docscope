@@ -130,15 +130,8 @@ export function decodeText(buffer: ArrayBuffer): string {
   return new TextDecoder('utf-8').decode(bytes);
 }
 
-export async function blobToArrayBuffer(blob: Blob): Promise<ArrayBuffer> {
-  if (typeof blob.arrayBuffer === 'function') return blob.arrayBuffer();
-  /* istanbul ignore next -- legacy environments only */
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = () => resolve(reader.result as ArrayBuffer);
-    reader.onerror = () => reject(reader.error);
-    reader.readAsArrayBuffer(blob);
-  });
+export function blobToArrayBuffer(blob: Blob): Promise<ArrayBuffer> {
+  return blob.arrayBuffer();
 }
 
 export interface ManagedSourceOptions {
@@ -325,7 +318,7 @@ export async function loadDocumentSource(options: LoadSourceOptions): Promise<Ma
       resolved: { kind: 'blob', blob: cached },
       signal,
       maxFileSize,
-      ...(caches ? { caches } : {}),
+      caches,
     });
   }
   if (!useCache) {

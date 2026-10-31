@@ -174,3 +174,44 @@ describe('sanitizeHtml', () => {
     expect(root.querySelector('script')).toBeNull();
   });
 });
+
+describe('DOM search edge cases', () => {
+  it('handles documents as roots, empty nodes, and missing scroll containers', () => {
+    const root = el('<p>one</p><p></p><p>two one</p>');
+    expect(collectTextNodes(document).length).toBeGreaterThanOrEqual(2);
+    const ranges = findDomMatches(root, 'one');
+    expect(ranges).toHaveLength(2);
+    expect(findDomMatches(root, 'one', false, 1)).toHaveLength(1);
+    const r = ranges[0]!;
+    (r as unknown as { getBoundingClientRect: () => DOMRect }).getBoundingClientRect = () =>
+      ({ top: 10, left: 10, right: 20, width: 10, height: 10 }) as DOMRect;
+    const container = document.createElement('div');
+    container.getBoundingClientRect = () => ({ top: 0, left: 0, right: 400 }) as DOMRect;
+    scrollRangeIntoView(r, container); // inside horizontally: keeps scrollLeft
+    expect(container.scrollLeft).toBe(0);
+    expect(() => scrollRangeIntoView(findDomMatches(root, 'two')[0]!, container)).not.toThrow();
+  });
+
+  it('highlights the active match with an index beyond the matches', () => {
+    const registry = new Map<string, { ranges: Range[] }>();
+    class FakeHighlight {
+      ranges: Range[] = [];
+      add(r: Range) {
+        this.ranges.push(r);
+      }
+    }
+    const g = globalThis as Record<string, unknown>;
+    g.CSS = { highlights: registry };
+    g.Highlight = FakeHighlight;
+    try {
+      const root = el('<p>dog dog</p>');
+      const res = highlightDom({}, root, 'dog', true, 9, { allowMutation: false });
+      expect(res.count).toBe(2);
+      expect(registry.get('dsc-search-active')!.ranges).toHaveLength(0);
+      res.cleanup();
+    } finally {
+      delete g.CSS;
+      delete g.Highlight;
+    }
+  });
+});

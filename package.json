@@ -17,7 +17,7 @@
     "storybook": "pnpm --filter docs storybook",
     "fixtures": "node scripts/generate-large-fixtures.mjs",
     "test": "jest",
-    "test:coverage": "jest --coverage",
+    "test:coverage": "jest --coverage && node scripts/check-coverage.mjs",
     "test:watch": "jest --watch",
     "test:e2e": "pnpm fixtures && pnpm build && pnpm --filter playground build && playwright test",
     "test:visual": "pnpm fixtures && pnpm build && pnpm --filter playground build && playwright test --project=visual",
@@ -46,6 +46,8 @@
     "@types/jest": "^30.0.0",
     "@types/jest-axe": "^3.5.9",
     "@types/node": "^22.20.5",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "eslint": "^10.14.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "fflate": "^0.8.3",
@@ -55,6 +57,8 @@
     "jest-axe": "^11.0.0",
     "jest-environment-jsdom": "^30.5.2",
     "prettier": "^3.9.10",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
     "typescript": "~6.0.3",
     "typescript-eslint": "^8.72.1"
   }

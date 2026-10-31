@@ -36,6 +36,9 @@ export interface DataGridProps {
 const DEFAULT_COL = 120;
 const DEFAULT_ROW = 26;
 const HEADER_H = 26;
+const defaultRowHeader = (r: number) => String(r + 1);
+const defaultColWidth = () => DEFAULT_COL;
+const defaultRowHeight = () => DEFAULT_ROW;
 
 /** Read-only 2D virtualized grid with sticky row / column headers and merged cells. */
 export const DataGrid = memo(function DataGrid({
@@ -43,9 +46,9 @@ export const DataGrid = memo(function DataGrid({
   colCount,
   getCell,
   colHeader,
-  rowHeader = (r) => String(r + 1),
-  colWidth = () => DEFAULT_COL,
-  rowHeight = () => DEFAULT_ROW,
+  rowHeader = defaultRowHeader,
+  colWidth = defaultColWidth,
+  rowHeight = defaultRowHeight,
   merges = [],
   matches,
   activeCell,

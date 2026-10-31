@@ -3,7 +3,8 @@ const swc = (syntax) => [
   '@swc/jest',
   {
     jsc: {
-      parser: syntax === 'ts' ? { syntax: 'typescript', tsx: true } : { syntax: 'ecmascript', jsx: true },
+      parser:
+        syntax === 'ts' ? { syntax: 'typescript', tsx: true } : { syntax: 'ecmascript', jsx: true },
       transform: { react: { runtime: 'automatic' } },
       target: 'es2022',
     },
@@ -22,7 +23,9 @@ module.exports = {
   },
   // Most of the unified / micromark ecosystem is ESM-only: transform node_modules
   // except a few large CommonJS packages.
-  transformIgnorePatterns: ['/node_modules/\\.pnpm/(react@|react-dom@|scheduler@|@babel|jsdom@|pdfjs-dist@|typescript@|@swc)'],
+  transformIgnorePatterns: [
+    '/node_modules/\\.pnpm/(react@|react-dom@|scheduler@|@babel|jsdom@|pdfjs-dist@|typescript@|@swc)',
+  ],
   moduleNameMapper: {
     '\\.css$': 'identity-obj-proxy',
     '^pdfjs-dist$': '<rootDir>/tests/setup/pdfjs-mock.ts',
@@ -37,7 +40,7 @@ module.exports = {
   ],
   coverageReporters: ['text-summary', 'text', 'lcov', 'json-summary'],
   coverageThreshold: {
-    global: { statements: 90, branches: 80, functions: 90, lines: 90 },
+    global: { statements: 95, branches: 90, functions: 95, lines: 97 },
   },
   testTimeout: 15000,
 };

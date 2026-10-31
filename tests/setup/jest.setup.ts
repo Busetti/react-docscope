@@ -16,7 +16,10 @@ class ResizeObserverMock {
     this.cb = cb;
   }
   observe(target: Element) {
-    this.cb([{ target, contentRect: target.getBoundingClientRect() } as unknown as ResizeObserverEntry], this as unknown as ResizeObserver);
+    this.cb(
+      [{ target, contentRect: target.getBoundingClientRect() } as unknown as ResizeObserverEntry],
+      this as unknown as ResizeObserver,
+    );
   }
   unobserve() {}
   disconnect() {}
@@ -30,7 +33,13 @@ class IntersectionObserverMock {
   }
   observe(target: Element) {
     this.cb(
-      [{ target, isIntersecting: true, intersectionRatio: 1 } as unknown as IntersectionObserverEntry],
+      [
+        {
+          target,
+          isIntersecting: true,
+          intersectionRatio: 1,
+        } as unknown as IntersectionObserverEntry,
+      ],
       this as unknown as IntersectionObserver,
     );
   }
@@ -89,4 +98,47 @@ Element.prototype.scrollTo = function scrollTo(this: Element, opts?: ScrollToOpt
   }
 } as Element['scrollTo'];
 Element.prototype.scrollIntoView = function scrollIntoView() {};
-if (!HTMLMediaElement.prototype.pause) HTMLMediaElement.prototype.pause = () => {};
+HTMLMediaElement.prototype.pause = () => {};
+HTMLMediaElement.prototype.load = () => {};
+
+// jsdom lacks PointerEvent; fireEvent.pointer* then drops coordinates.
+if (typeof window.PointerEvent === 'undefined') {
+  class PointerEventPolyfill extends MouseEvent {
+    pointerId: number;
+    constructor(type: string, init: PointerEventInit = {}) {
+      super(type, init);
+      this.pointerId = init.pointerId ?? 1;
+    }
+  }
+  (window as unknown as { PointerEvent: unknown }).PointerEvent = PointerEventPolyfill;
+}
+
+// jsdom has no layout: give elements a plausible size so virtualized lists render.
+function fakeRect(this: Element): DOMRect {
+  const isItem = this instanceof HTMLElement && this.hasAttribute('data-index');
+  const width = 1024;
+  const height = isItem ? 20 : 768;
+  return {
+    x: 0,
+    y: 0,
+    top: 0,
+    left: 0,
+    right: width,
+    bottom: height,
+    width,
+    height,
+    toJSON: () => ({}),
+  } as DOMRect;
+}
+Element.prototype.getBoundingClientRect = fakeRect;
+Object.defineProperties(HTMLElement.prototype, {
+  clientWidth: { configurable: true, get: () => 1024 },
+  clientHeight: { configurable: true, get: () => 768 },
+  offsetWidth: { configurable: true, get: () => 1024 },
+  offsetHeight: {
+    configurable: true,
+    get(this: HTMLElement) {
+      return this.hasAttribute('data-index') ? 20 : 768;
+    },
+  },
+});

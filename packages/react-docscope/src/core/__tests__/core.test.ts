@@ -401,3 +401,24 @@ describe('RendererRegistry', () => {
     }
   });
 });
+
+describe('platform & path edge cases', () => {
+  it('detects Apple platforms via userAgentData and navigator.platform', () => {
+    Object.defineProperty(navigator, 'userAgentData', {
+      configurable: true,
+      value: { platform: 'macOS' },
+    });
+    expect(isApplePlatform()).toBe(true);
+    Object.defineProperty(navigator, 'userAgentData', { configurable: true, value: undefined });
+    const platform = Object.getOwnPropertyDescriptor(Navigator.prototype, 'platform');
+    Object.defineProperty(navigator, 'platform', { configurable: true, value: '' });
+    expect(isApplePlatform()).toBe(false);
+    Object.defineProperty(navigator, 'platform', { configurable: true, value: 'iPhone' });
+    expect(isApplePlatform()).toBe(true);
+    if (platform) delete (navigator as { platform?: string }).platform;
+  });
+
+  it('handles directory-like names', () => {
+    expect(getExtension({ name: 'folder/' })).toBe('');
+  });
+});

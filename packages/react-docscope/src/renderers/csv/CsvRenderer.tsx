@@ -87,7 +87,12 @@ export default function CsvRenderer({
           hostRef.current.setError('EMPTY_DOCUMENT', 'This CSV file is empty.');
           return;
         }
-        Papa.parse<string[]>(blob as File, {
+        // Papa Parse detects inputs via `instanceof File`; wrapping is free (no copy).
+        const input =
+          typeof File !== 'undefined' && !(blob instanceof File)
+            ? new File([blob], document.name, { type: blob.type })
+            : (blob as File);
+        Papa.parse<string[]>(input, {
           delimiter: configured,
           skipEmptyLines: 'greedy',
           chunkSize: 1024 * 512,
