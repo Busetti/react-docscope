@@ -1,6 +1,7 @@
 import { memo } from 'react';
 import type { PreviewLabels, ResolvedPreviewConfig } from '../types';
 import type { PaneController } from '../hooks/usePaneController';
+import { fillLabel } from '../core/format';
 import { ErrorState, LoadingSkeleton, MessageState } from './states';
 import { FileQuestion } from 'lucide-react';
 
@@ -37,7 +38,7 @@ export const PaneView = memo(function PaneView({
         <ErrorState
           error={{
             code: 'UNSUPPORTED_FORMAT',
-            message: `${labels.unsupported} for “${c.document.name}”.`,
+            message: fillLabel(labels.unsupportedDetail, { name: c.document.name }),
           }}
           labels={labels}
           onDownload={download}
@@ -63,9 +64,9 @@ export const PaneView = memo(function PaneView({
     <div className="dsc-pane-content" aria-busy={showSkeleton}>
       {c.usingFallback && (
         <div className="dsc-banner" role="note">
-          Showing a converted version of this document.
+          {labels.convertedNotice}
           <button type="button" className="dsc-link-button" onClick={c.actions.toggleFallback}>
-            Try original
+            {labels.tryOriginal}
           </button>
         </div>
       )}

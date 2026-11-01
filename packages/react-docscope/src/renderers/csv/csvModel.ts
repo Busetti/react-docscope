@@ -1,3 +1,5 @@
+import type { PreviewLabels } from '../../types';
+import { DEFAULT_LABELS } from '../../core/config';
 import { textIncludes } from '../../core/search';
 
 const NUMERIC = /^[-+]?(\d{1,3}(,\d{3})+|\d+)?(\.\d+)?([eE][-+]?\d+)?%?$/;
@@ -23,16 +25,19 @@ export function detectHeader(rows: string[][]): boolean {
   return true;
 }
 
-export function delimiterLabel(d: string): string {
+export function delimiterLabel(
+  d: string,
+  names: PreviewLabels['csvDelimiters'] = DEFAULT_LABELS.csvDelimiters,
+): string {
   switch (d) {
     case ',':
-      return 'comma';
+      return names.comma;
     case ';':
-      return 'semicolon';
+      return names.semicolon;
     case '\t':
-      return 'tab';
+      return names.tab;
     case '|':
-      return 'pipe';
+      return names.pipe;
     default:
       return JSON.stringify(d);
   }

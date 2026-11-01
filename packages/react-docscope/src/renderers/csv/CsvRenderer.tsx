@@ -2,7 +2,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import type { RendererProps } from '../../types';
 import { getExtension } from '../../core/detect';
 import { toPreviewError } from '../../core/errors';
-import { formatBytes } from '../../core/format';
+import { fillLabel, formatBytes } from '../../core/format';
 import { useLatest } from '../shared/hooks';
 import { parseCsvBlob } from './csvParse';
 import { DataGrid, columnLabel } from '../shared/DataGrid';
@@ -135,6 +135,7 @@ export default function CsvRenderer({
   }, [source, document, config.csv.delimiter, hostRef]);
 
   const configuredHeader = config.csv.header;
+  const labels = config.labels;
   const hasHeader =
     headerOverride ?? (configuredHeader === 'auto' ? state.autoHeader : configuredHeader);
   const startRow = hasHeader ? 1 : 0;
@@ -185,11 +186,15 @@ export default function CsvRenderer({
       />
       <div className="dsc-statusbar" aria-live="polite">
         <span>
-          {dataRows.toLocaleString()} rows · {state.colCount} columns ·{' '}
-          {delimiterLabel(state.delimiter)} delimited
+          {fillLabel(labels.csvSummary, {
+            rows: dataRows.toLocaleString(),
+            columns: state.colCount.toLocaleString(),
+            delimiter: delimiterLabel(state.delimiter, labels.csvDelimiters),
+          })}
           {source.size ? ` · ${formatBytes(source.size)}` : ''}
-          {!state.done && ' · loading…'}
-          {state.truncated && ` · showing first ${MAX_ROWS.toLocaleString()} rows`}
+          {!state.done && ` · ${labels.csvLoading}`}
+          {state.truncated &&
+            ` · ${fillLabel(labels.csvTruncated, { rows: MAX_ROWS.toLocaleString() })}`}
         </span>
         <label className="dsc-checkbox">
           <input
@@ -197,7 +202,7 @@ export default function CsvRenderer({
             checked={hasHeader}
             onChange={(e) => setHeaderOverride(e.target.checked)}
           />
-          First row is header
+          {labels.csvHeaderRow}
         </label>
       </div>
     </div>

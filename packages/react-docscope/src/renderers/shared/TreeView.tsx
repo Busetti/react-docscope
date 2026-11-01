@@ -22,6 +22,8 @@ export interface TreeViewProps<R extends FlatTreeRow> {
   onSelect?: (row: R) => void;
   zoom: number;
   label: string;
+  expandLabel?: string;
+  collapseLabel?: string;
 }
 
 /** Virtualized, keyboard-accessible tree (WAI-ARIA tree pattern with aria-activedescendant). */
@@ -35,6 +37,8 @@ export function TreeView<R extends FlatTreeRow>({
   onSelect,
   zoom,
   label,
+  expandLabel = 'Expand',
+  collapseLabel = 'Collapse',
 }: TreeViewProps<R>) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const baseId = useId();
@@ -150,7 +154,7 @@ export function TreeView<R extends FlatTreeRow>({
                   type="button"
                   className="dsc-tree-toggle"
                   tabIndex={-1}
-                  aria-label={row.expanded ? 'Collapse' : 'Expand'}
+                  aria-label={row.expanded ? collapseLabel : expandLabel}
                   onClick={(e) => {
                     e.stopPropagation();
                     onToggle(row);

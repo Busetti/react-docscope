@@ -40,7 +40,8 @@ objects are compared structurally, so passing a new object each render does not 
 | `prefetchMaxSize`                                         | `number`                                    | `5 MB`                                                    |                                                                                                                           |
 | `cacheSize`                                               | `number`                                    | `64 MB`                                                   | LRU budget for downloaded bytes (text cache = ¼).                                                                         |
 | `shortcuts`                                               | `ShortcutMap \| false`                      | see below                                                 | Per-action combos (`'mod+f'`, `'alt+ArrowRight'`, `'+'`), `false` per action or globally.                                 |
-| `labels`                                                  | `Partial<PreviewLabels>`                    | English                                                   | All UI strings, for i18n.                                                                                                 |
+| `workers`                                                 | `boolean`                                   | `true`                                                    | Parse XLSX in an inline Web Worker; falls back to the main thread automatically.                                          |
+| `labels`                                                  | `PreviewLabelsInput`                        | English                                                   | All UI strings. Locale packs: `react-docscope/locales` (`de`, `es`, `fr`, `hi`). See [API.md](API.md#labels).             |
 
 ## Shortcuts
 

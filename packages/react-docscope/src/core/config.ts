@@ -1,6 +1,7 @@
 import type {
   PreviewConfig,
   PreviewLabels,
+  PreviewLabelsInput,
   ResolvedPreviewConfig,
   ShortcutAction,
   ShortcutMap,
@@ -51,6 +52,111 @@ export const DEFAULT_LABELS: PreviewLabels = {
   passwordIncorrect: 'Incorrect password. Please try again.',
   unlock: 'Open',
   cancel: 'Cancel',
+
+  unsupportedDetail: 'Preview not available for “{name}”.',
+  documentTools: 'Document tools',
+  pagesGroup: 'Pages',
+  zoomGroup: 'Zoom',
+  zoomStatus: 'Zoom {percent}%. Reset to 100%',
+  resetZoom: 'Reset to 100%',
+  fitWindow: 'Fit to window',
+  showOriginal: 'Show original',
+  showConverted: 'Show converted version',
+  convertedNotice: 'Showing a converted version of this document.',
+  tryOriginal: 'Try original',
+  pageOf: 'Page {page} of {count}',
+  documentCounter: '{index} / {count}',
+  modalDescription: 'Document preview. Press Escape to close.',
+  compareTools: 'Compare tools',
+  resizePanes: 'Resize panes',
+  leftDocument: 'Left document',
+  rightDocument: 'Right document',
+  searching: 'Searching…',
+  noResults: 'No results',
+  matchOf: '{current} of {total}',
+
+  fieldName: 'Name',
+  fieldType: 'Type',
+  fieldSize: 'Size',
+  fieldUploadedAt: 'Uploaded',
+  fieldUploadedBy: 'Uploaded by',
+  fieldDescription: 'Description',
+  yes: 'Yes',
+  no: 'No',
+
+  errorTitles: {
+    RESOLVE_FAILED: 'Unable to open document',
+    FETCH_FAILED: 'Download failed',
+    ACCESS_DENIED: 'Access denied',
+    NOT_FOUND: 'Document not found',
+    UNSUPPORTED_FORMAT: 'Preview not available',
+    TOO_LARGE: 'Document too large',
+    EMPTY_DOCUMENT: 'Empty document',
+    MALFORMED_DOCUMENT: 'Unable to read document',
+    RENDER_FAILED: 'Unable to display document',
+    DOWNLOAD_FAILED: 'Download failed',
+    PASSWORD_REQUIRED: 'Password required',
+  },
+
+  page: 'Page {page}',
+  pageThumbnails: 'Page thumbnails',
+  slide: 'Slide {slide}',
+  slideThumbnails: 'Slide thumbnails',
+  chartLabel: '{type}: {series}',
+  chartTypes: {
+    bar: 'Bar chart',
+    line: 'Line chart',
+    area: 'Area chart',
+    pie: 'Pie chart',
+    scatter: 'Scatter chart',
+    radar: 'Radar chart',
+  },
+  chartSeries: 'Series {index}',
+
+  worksheets: 'Worksheets',
+  readOnly: 'Read-only',
+  hiddenSheet: '{count} hidden sheet',
+  hiddenSheets: '{count} hidden sheets',
+
+  csvSummary: '{rows} rows · {columns} columns · {delimiter} delimited',
+  csvDelimiters: { comma: 'comma', semicolon: 'semicolon', tab: 'tab', pipe: 'pipe' },
+  csvLoading: 'loading…',
+  csvTruncated: 'showing first {rows} rows',
+  csvHeaderRow: 'First row is header',
+
+  sourceLabel: '{name} (source)',
+  errorPosition: '(line {line}, column {column})',
+  invalidJson: 'Invalid JSON.',
+  invalidXml: 'Invalid XML.',
+  copyPath: 'Copy path',
+  copyPathOf: 'Copy path {path}',
+  copied: 'Copied',
+  expand: 'Expand',
+  collapse: 'Collapse',
+  expandAll: 'Expand all',
+  collapseAll: 'Collapse all',
+  nodeDetails: 'Node details',
+  attributes: 'Attributes',
+  attribute: 'Attribute',
+  value: 'Value',
+  selectNode: 'Select a node to inspect its path and attributes.',
+};
+
+/** Merges label overrides; grouped labels are merged one level deep. */
+export const mergeLabels = (
+  base: PreviewLabelsInput | undefined,
+  override: PreviewLabelsInput | undefined,
+): PreviewLabelsInput => {
+  const out: Record<string, unknown> = { ...base };
+  for (const [key, value] of Object.entries(override ?? {})) {
+    if (value === undefined) continue;
+    const prev = out[key];
+    out[key] =
+      value && typeof value === 'object' && prev && typeof prev === 'object'
+        ? { ...prev, ...value }
+        : value;
+  }
+  return out as PreviewLabelsInput;
 };
 
 export const DEFAULT_SHORTCUTS: Record<ShortcutAction, string[]> = {
@@ -139,7 +245,7 @@ export function resolveConfig(...configs: Array<PreviewConfig | undefined>): Res
       zoom: { ...merged.zoom, ...c.zoom },
       pdf: { ...merged.pdf, ...c.pdf },
       csv: { ...merged.csv, ...c.csv },
-      labels: { ...merged.labels, ...c.labels },
+      labels: mergeLabels(merged.labels, c.labels),
     });
     if (c.shortcuts === false) shortcuts = false;
     else if (c.shortcuts) shortcuts = { ...(shortcuts || {}), ...c.shortcuts };
@@ -208,7 +314,7 @@ export function resolveConfig(...configs: Array<PreviewConfig | undefined>): Res
     prefetchMaxSize: clampNumber(merged.prefetchMaxSize, d.prefetchMaxSize, 0),
     cacheSize: clampNumber(merged.cacheSize, d.cacheSize, 0),
     shortcuts: resolveShortcuts(shortcuts),
-    labels: { ...DEFAULT_LABELS, ...merged.labels },
+    labels: mergeLabels(DEFAULT_LABELS, merged.labels) as PreviewLabels,
   };
   if (merged.className) resolved.className = merged.className;
   return resolved;

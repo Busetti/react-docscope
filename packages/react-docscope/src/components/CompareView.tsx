@@ -161,7 +161,11 @@ export const CompareView = memo(function CompareView({
 
   return (
     <div className="dsc-compare">
-      <div className="dsc-toolbar dsc-compare-toolbar" role="toolbar" aria-label="Compare tools">
+      <div
+        className="dsc-toolbar dsc-compare-toolbar"
+        role="toolbar"
+        aria-label={labels.compareTools}
+      >
         <span className="dsc-compare-label">{labels.compare}</span>
         <Separator />
         <IconButton
@@ -240,7 +244,7 @@ export const CompareView = memo(function CompareView({
           aria-valuenow={Math.round(ratio * 100)}
           aria-valuemin={20}
           aria-valuemax={80}
-          aria-label="Resize panes"
+          aria-label={labels.resizePanes}
           onPointerDown={onPointerDown}
           onPointerMove={onPointerMove}
           onPointerUp={onPointerUp}
@@ -307,13 +311,13 @@ function ComparePaneSlot({
       ref={refCallback}
       className="dsc-compare-pane"
       style={{ order: order * 2 }}
-      aria-label={`${side === 'left' ? 'Left' : 'Right'} document`}
+      aria-label={side === 'left' ? labels.leftDocument : labels.rightDocument}
       onFocusCapture={() => onFocusSlot(slot)}
       onPointerDownCapture={() => onFocusSlot(slot)}
     >
       <div className="dsc-compare-pane-header">
         <label className="dsc-visually-hidden" htmlFor={selectId}>
-          {side === 'left' ? 'Left document' : 'Right document'}
+          {side === 'left' ? labels.leftDocument : labels.rightDocument}
         </label>
         <select
           id={selectId}

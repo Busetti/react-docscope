@@ -36,7 +36,7 @@ import { usePaneController, type PaneController } from '../hooks/usePaneControll
 import { cssSize, useFullscreen, useResolvedTheme } from '../hooks/utils';
 import { findShortcutAction, isEditableTarget, isSingleKeyCombo } from '../core/shortcuts';
 import { loadDocumentSource, cacheKey } from '../core/source';
-import { formatBytes } from '../core/format';
+import { fillLabel, formatBytes } from '../core/format';
 import { IconButton, PortalContainerContext, Separator } from './IconButton';
 import { PaneToolbar } from './Toolbar';
 import { SearchBar } from './SearchBar';
@@ -373,7 +373,10 @@ export const PreviewWorkspace = forwardRef<DocumentPreviewerHandle, WorkspacePro
               </div>
               {multi && !compare && (
                 <span className="dsc-counter" aria-live="polite">
-                  {index + 1} / {documents.length}
+                  {fillLabel(config.labels.documentCounter, {
+                    index: index + 1,
+                    count: documents.length,
+                  })}
                 </span>
               )}
               <span className="dsc-spacer" />

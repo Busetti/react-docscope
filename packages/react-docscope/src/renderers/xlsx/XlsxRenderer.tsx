@@ -2,6 +2,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type { RendererProps } from '../../types';
 import { toPreviewError } from '../../core/errors';
 import { textIncludes } from '../../core/search';
+import { fillLabel } from '../../core/format';
 import { useAsync, useLatest } from '../shared/hooks';
 import { DataGrid, columnLabel } from '../shared/DataGrid';
 import type { XlsxSheet } from './xlsxReader';
@@ -126,7 +127,7 @@ export default function XlsxRenderer({
         label={`${document.name} — ${sheet.name}`}
         className="dsc-grid--xlsx"
       />
-      <div className="dsc-sheet-tabs" role="tablist" aria-label="Worksheets">
+      <div className="dsc-sheet-tabs" role="tablist" aria-label={config.labels.worksheets}>
         {visible.map((s) => (
           <button
             key={s.index}
@@ -141,10 +142,12 @@ export default function XlsxRenderer({
         ))}
         {hiddenCount > 0 && (
           <span className="dsc-muted dsc-sheet-hidden">
-            {hiddenCount} hidden {hiddenCount === 1 ? 'sheet' : 'sheets'}
+            {fillLabel(hiddenCount === 1 ? config.labels.hiddenSheet : config.labels.hiddenSheets, {
+              count: hiddenCount,
+            })}
           </span>
         )}
-        <span className="dsc-sheet-readonly">Read-only</span>
+        <span className="dsc-sheet-readonly">{config.labels.readOnly}</span>
       </div>
     </div>
   );

@@ -91,7 +91,7 @@ export const PreviewModal = forwardRef<DocumentPreviewerHandle, PreviewModalProp
             }}
           >
             <Dialog.Description className="dsc-visually-hidden">
-              {description ?? 'Document preview. Press Escape to close.'}
+              {description ?? env.config.labels.modalDescription}
             </Dialog.Description>
             <PreviewWorkspace
               {...previewerProps}

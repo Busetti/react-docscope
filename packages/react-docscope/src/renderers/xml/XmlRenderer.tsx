@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import type { RendererProps } from '../../types';
+import type { PreviewLabels, RendererProps } from '../../types';
+import { fillLabel } from '../../core/format';
 import { toPreviewError } from '../../core/errors';
 import { useAsync, useLatest, useLineSearch } from '../shared/hooks';
 import { TextLines } from '../shared/TextLines';
@@ -18,7 +19,15 @@ import {
   type XmlRow,
 } from './xmlModel';
 
-export default function XmlRenderer({ document, source, search, view, host }: RendererProps) {
+export default function XmlRenderer({
+  document,
+  source,
+  search,
+  view,
+  host,
+  config,
+}: RendererProps) {
+  const labels = config.labels;
   const { value: text, error } = useAsync(() => source.getText(), [source]);
   const hostRef = useLatest(host);
   const parsed = useMemo(() => (text === undefined ? null : parseXml(text)), [text]);
@@ -36,7 +45,7 @@ export default function XmlRenderer({ document, source, search, view, host }: Re
       <div className="dsc-stack">
         {!parsed.ok && (
           <div className="dsc-inline-error" role="alert">
-            <strong>Invalid XML.</strong> {parsed.message}
+            <strong>{labels.invalidXml}</strong> {parsed.message}
           </div>
         )}
         <RawXml
@@ -44,7 +53,7 @@ export default function XmlRenderer({ document, source, search, view, host }: Re
           search={search}
           host={host}
           zoom={view.zoom}
-          label={`${document.name} (source)`}
+          label={fillLabel(labels.sourceLabel, { name: document.name })}
         />
       </div>
     );
@@ -57,6 +66,7 @@ export default function XmlRenderer({ document, source, search, view, host }: Re
       host={host}
       zoom={view.zoom}
       label={document.name}
+      labels={labels}
     />
   );
 }
@@ -97,6 +107,7 @@ function XmlTree({
   host,
   zoom,
   label,
+  labels,
 }: {
   index: Map<string, XmlNode>;
   rootId: string;
@@ -104,6 +115,7 @@ function XmlTree({
   host: RendererProps['host'];
   zoom: number;
   label: string;
+  labels: PreviewLabels;
 }) {
   const [expanded, setExpanded] = useState(() => defaultXmlExpanded(index));
   const [selected, setSelected] = useState<XmlNode | null>(null);
@@ -159,8 +171,10 @@ function XmlTree({
         onSelect={(r) => setSelected(r.node)}
         zoom={zoom}
         label={label}
+        expandLabel={labels.expand}
+        collapseLabel={labels.collapse}
       />
-      <div className="dsc-inspector" aria-label="Node details">
+      <div className="dsc-inspector" aria-label={labels.nodeDetails}>
         {selected ? (
           <>
             <div className="dsc-statusbar">
@@ -175,16 +189,16 @@ function XmlTree({
                   }
                 }}
               >
-                {copied ? 'Copied' : 'Copy path'}
+                {copied ? labels.copied : labels.copyPath}
               </button>
             </div>
             {selected.attributes.length > 0 && (
               <table className="dsc-attr-table">
-                <caption className="dsc-visually-hidden">Attributes</caption>
+                <caption className="dsc-visually-hidden">{labels.attributes}</caption>
                 <thead>
                   <tr>
-                    <th scope="col">Attribute</th>
-                    <th scope="col">Value</th>
+                    <th scope="col">{labels.attribute}</th>
+                    <th scope="col">{labels.value}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -199,9 +213,7 @@ function XmlTree({
             )}
           </>
         ) : (
-          <div className="dsc-statusbar dsc-muted">
-            Select a node to inspect its path and attributes.
-          </div>
+          <div className="dsc-statusbar dsc-muted">{labels.selectNode}</div>
         )}
       </div>
     </div>

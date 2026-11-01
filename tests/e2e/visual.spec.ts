@@ -32,7 +32,11 @@ for (const [name, file] of [
         return a === (await scrollTop());
       })
       .toBe(true);
-    await expect(dialog).toHaveScreenshot(`${name}.png`, { mask: mask(page) });
+    // These shots cover document rendering; the attachment list's scroll offset varies by
+    // environment once it overflows, so it is masked here.
+    await expect(dialog).toHaveScreenshot(`${name}.png`, {
+      mask: [...mask(page), dialog.locator('.dsc-sidebar-list')],
+    });
   });
 }
 

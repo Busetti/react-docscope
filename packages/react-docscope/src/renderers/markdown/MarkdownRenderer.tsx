@@ -2,6 +2,7 @@ import { memo, useEffect, useMemo, useRef } from 'react';
 import ReactMarkdown, { type Components } from 'react-markdown';
 import remarkGfm from 'remark-gfm';
 import type { RendererProps } from '../../types';
+import { fillLabel } from '../../core/format';
 import { toPreviewError } from '../../core/errors';
 import { useAsync, useDomSearch, useLineSearch, useWheelZoom } from '../shared/hooks';
 import { TextLines } from '../shared/TextLines';
@@ -34,7 +35,14 @@ const MarkdownBody = memo(function MarkdownBody({ text }: { text: string }) {
   );
 });
 
-export default function MarkdownRenderer({ document, source, search, view, host }: RendererProps) {
+export default function MarkdownRenderer({
+  document,
+  source,
+  search,
+  view,
+  host,
+  config,
+}: RendererProps) {
   const { value: text, error } = useAsync(() => source.getText(), [source]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -65,7 +73,7 @@ export default function MarkdownRenderer({ document, source, search, view, host 
         activeMatch={rawSearch.active}
         activeIndex={search.activeIndex}
         zoom={view.zoom}
-        label={`${document.name} (source)`}
+        label={fillLabel(config.labels.sourceLabel, { name: document.name })}
       />
     );
   }

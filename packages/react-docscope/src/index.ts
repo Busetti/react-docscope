@@ -45,6 +45,7 @@ export type {
   PreviewConfig,
   ResolvedPreviewConfig,
   PreviewLabels,
+  PreviewLabelsInput,
   ShortcutAction,
   ShortcutMap,
   ThemeMode,

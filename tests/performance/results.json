@@ -1,46 +1,46 @@
 {
-  "date": "2026-11-01T04:35:13.391Z",
+  "date": "2026-11-01T05:10:45.763Z",
   "results": [
     {
       "file": "large.pdf",
-      "readyMs": 1287,
-      "searchMs": 540,
-      "domNodes": 583,
-      "heapMb": 16
+      "readyMs": 847,
+      "searchMs": 495,
+      "domNodes": 590,
+      "heapMb": 15
     },
     {
       "file": "large.csv",
-      "readyMs": 346,
-      "searchMs": 780,
-      "domNodes": 673,
-      "heapMb": 93
+      "readyMs": 396,
+      "searchMs": 687,
+      "domNodes": 680,
+      "heapMb": 78
     },
     {
       "file": "large.xlsx",
-      "readyMs": 2889,
-      "searchMs": 417,
-      "domNodes": 996,
+      "readyMs": 2659,
+      "searchMs": 413,
+      "domNodes": 1003,
       "heapMb": 38
     },
     {
       "file": "large.txt",
-      "readyMs": 543,
-      "searchMs": 515,
-      "domNodes": 616,
+      "readyMs": 287,
+      "searchMs": 478,
+      "domNodes": 623,
       "heapMb": 45
     },
     {
       "file": "large.json",
-      "readyMs": 663,
-      "searchMs": 528,
-      "domNodes": 737,
-      "heapMb": 58
+      "readyMs": 562,
+      "searchMs": 555,
+      "domNodes": 744,
+      "heapMb": 78
     },
     {
       "file": "large.xml",
-      "readyMs": 1027,
-      "searchMs": 388,
-      "domNodes": 939,
+      "readyMs": 974,
+      "searchMs": 398,
+      "domNodes": 946,
       "heapMb": 32
     }
   ]

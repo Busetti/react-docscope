@@ -42,9 +42,9 @@ export default defineConfig(({ mode }) => ({
     minify: false,
     cssCodeSplit: false,
     lib: {
-      entry: 'src/index.ts',
+      entry: { index: 'src/index.ts', locales: 'src/locales/index.ts' },
       formats: ['es'],
-      fileName: () => 'index.js',
+      fileName: (_format, name) => `${name}.js`,
       cssFileName: 'styles',
     },
     rollupOptions: {

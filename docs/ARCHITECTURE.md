@@ -68,6 +68,12 @@ React and React DOM are peer dependencies (`^18.2 || ^19`).
 - `virtual:pdf-worker-source` embeds the pdf.js worker as a string chunk, started from a `blob:`
   URL — zero bundler config; `pdf.workerSrc` for strict CSPs; main-thread fallback if a worker
   cannot start at all.
+- The XLSX reader is DOM-free (string scanners plus a tiny non-validating XML parser for the
+  small workbook/styles/theme parts), so it runs in an inline worker (`?worker&inline`). Sheets
+  cross the thread boundary as one JSON string with columnar arrays and a deduplicated style
+  table — structured-cloning a Map of 240k cell objects took over a second. CSV stays on the main
+  thread: Papa Parse already streams 512 KB chunks without long tasks, so a worker only added latency.
+- `react-docscope/locales` is a second library entry, so translations never enlarge the main bundle.
 - Types emitted with `tsc` (`dist/types`), CSS extracted to `dist/styles.css`
   (`react-docscope/styles.css` export), `sideEffects: ["*.css"]`.
 
@@ -76,7 +82,7 @@ React and React DOM are peer dependencies (`^18.2 || ^19`).
 | Risk                                    | Mitigation                                                                                                          |
 | --------------------------------------- | ------------------------------------------------------------------------------------------------------------------- |
 | PPTX fidelity                           | Best-effort renderer, explicit limitations, `document.fallback`, toggle original/converted.                         |
-| Main-thread parsing of big Office files | Lazy per-sheet parsing, string scanning, chunked CSV, size limit, skeleton yields before parsing.                   |
+| Main-thread parsing of big Office files | XLSX in a Web Worker, lazy per-sheet parsing, string scanning, chunked CSV, size limit.                             |
 | pdf.js worker across bundlers           | Blob worker by default, explicit `workerSrc`, main-thread fallback; verified by the smoke test in a fresh Vite app. |
 | Untrusted document content              | Sanitizer, no raw HTML, link neutralisation, `<img>` for SVG, DOMParser without external entities.                  |
 | Secrets in logs                         | Messages scrubbed of URLs/tokens; no console logging of URLs; integration test asserts it.                          |

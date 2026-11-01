@@ -1,11 +1,17 @@
 import { createContext, useContext, type CSSProperties, type ReactNode } from 'react';
 import type { PptxElement } from './slideModel';
+import type { PreviewLabels } from '../../types';
+import { DEFAULT_LABELS } from '../../core/config';
+import { fillLabel } from '../../core/format';
 
 /** Office default accents, used when the deck has no theme colours. */
 export const OFFICE_PALETTE = ['#4472C4', '#ED7D31', '#A5A5A5', '#FFC000', '#5B9BD5', '#70AD47'];
 
-/** Theme accent colours of the current deck. */
-export const ChartPaletteContext = createContext<string[]>(OFFICE_PALETTE);
+/** Per-deck rendering context: theme accent colours and UI labels. */
+export const SlideContext = createContext<{ palette: string[]; labels: PreviewLabels }>({
+  palette: OFFICE_PALETTE,
+  labels: DEFAULT_LABELS,
+});
 
 const TEXT = '#595959';
 const GRID = '#D9D9D9';
@@ -55,7 +61,11 @@ const KINDS: Record<string, ChartModel['kind']> = {
 const finite = (n: unknown): number => (typeof n === 'number' && Number.isFinite(n) ? n : 0);
 
 /** Normalizes pptxtojson chart data. Returns null for unsupported or empty charts. */
-export function toChartModel(el: PptxElement, palette: string[]): ChartModel | null {
+export function toChartModel(
+  el: PptxElement,
+  palette: string[],
+  seriesLabel = DEFAULT_LABELS.chartSeries,
+): ChartModel | null {
   const kind = KINDS[el.chartType ?? ''];
   if (!kind || !Array.isArray(el.data) || el.data.length === 0) return null;
   const colors = (el as { colors?: Array<string | null> }).colors ?? [];
@@ -99,7 +109,7 @@ export function toChartModel(el: PptxElement, palette: string[]): ChartModel | n
       xs: xs.map(finite),
       categories: [],
       series: ys.map((values, i) => ({
-        name: `Series ${i + 1}`,
+        name: fillLabel(seriesLabel, { index: i + 1 }),
         values: (values ?? []).map(finite),
         color: pick(i),
       })),
@@ -121,7 +131,11 @@ export function toChartModel(el: PptxElement, palette: string[]): ChartModel | n
       const x = Number(v.x);
       if (x >= 0 && x < count) values[x] = finite(v.y);
     }
-    return { name: String(s.key ?? `Series ${i + 1}`), values, color: pick(i) };
+    return {
+      name: String(s.key ?? fillLabel(seriesLabel, { index: i + 1 })),
+      values,
+      color: pick(i),
+    };
   });
   return { ...base, categories, series };
 }
@@ -466,19 +480,10 @@ function CartesianChart({ m, w, h }: { m: ChartModel; w: number; h: number }) {
   );
 }
 
-const TYPE_NAMES: Record<ChartModel['kind'], string> = {
-  bar: 'Bar chart',
-  line: 'Line chart',
-  area: 'Area chart',
-  pie: 'Pie chart',
-  scatter: 'Scatter chart',
-  radar: 'Radar chart',
-};
-
 /** SVG rendering of a slide chart from its cached values (read-only). */
 export function SlideChart({ el, style }: { el: PptxElement; style: CSSProperties }) {
-  const palette = useContext(ChartPaletteContext);
-  const m = toChartModel(el, palette.length ? palette : OFFICE_PALETTE);
+  const { palette, labels } = useContext(SlideContext);
+  const m = toChartModel(el, palette.length ? palette : OFFICE_PALETTE, labels.chartSeries);
   if (!m) {
     return (
       <div className="dsc-slide-el dsc-slide-placeholder" style={style}>
@@ -488,7 +493,10 @@ export function SlideChart({ el, style }: { el: PptxElement; style: CSSPropertie
   }
   const w = Math.max(20, el.width);
   const h = Math.max(20, el.height);
-  const label = `${TYPE_NAMES[m.kind]}: ${(m.kind === 'pie' ? m.categories : m.series.map((s) => s.name)).join(', ')}`;
+  const label = fillLabel(labels.chartLabel, {
+    type: labels.chartTypes[m.kind],
+    series: (m.kind === 'pie' ? m.categories : m.series.map((s) => s.name)).join(', '),
+  });
   return (
     <svg
       className="dsc-slide-el dsc-slide-chart"

@@ -9,6 +9,7 @@ import {
   type ToolbarAction,
 } from 'react-docscope';
 import { Eye, FileUp, Moon, Monitor, Share2, Sun } from 'lucide-react';
+import { de, en, es, fr, hi } from 'react-docscope/locales';
 import {
   allFormats,
   compareDocs,
@@ -65,6 +66,8 @@ const SCENARIOS: Array<{ id: ScenarioId; label: string; hint: string }> = [
   },
 ];
 
+const LOCALES = { en, de, es, fr, hi };
+
 interface Settings {
   theme: 'light' | 'dark' | 'system';
   mode: Mode;
@@ -84,6 +87,7 @@ interface Settings {
   defaultZoom: number;
   prefetch: boolean;
   workers: boolean;
+  language: keyof typeof LOCALES;
   customAction: boolean;
 }
 
@@ -106,6 +110,7 @@ const DEFAULTS: Settings = {
   defaultZoom: 1,
   prefetch: true,
   workers: true,
+  language: 'en',
   customAction: false,
 };
 
@@ -187,6 +192,7 @@ export function App() {
       shortcuts: settings.shortcuts ? undefined : false,
       prefetch: settings.prefetch ? 'adjacent' : 'none',
       workers: settings.workers,
+      labels: LOCALES[settings.language],
       pdf: { scrollMode: settings.pdfScroll, thumbnails: settings.pdfThumbnails },
       zoom: { defaultFit: settings.defaultFit, default: settings.defaultZoom },
       metadataFields: [
@@ -514,6 +520,19 @@ function ConfigPanel({
       </fieldset>
       <fieldset>
         <legend>View defaults</legend>
+        <label className="pg-field">
+          Language
+          <select
+            value={settings.language}
+            onChange={(e) => set('language', e.target.value as Settings['language'])}
+          >
+            <option value="en">English</option>
+            <option value="de">Deutsch</option>
+            <option value="es">Español</option>
+            <option value="fr">Français</option>
+            <option value="hi">हिन्दी</option>
+          </select>
+        </label>
         <label className="pg-field">
           Default fit
           <select

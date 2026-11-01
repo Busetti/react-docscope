@@ -36,3 +36,13 @@ export function humanizeKey(key: string): string {
 export function clamp(value: number, min: number, max: number): number {
   return Math.min(max, Math.max(min, value));
 }
+
+/**
+ * Fills `{name}` placeholders in a label. Unknown placeholders are kept so a
+ * translation mistake is visible rather than silently dropped.
+ */
+export function fillLabel(template: string, values: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (match, key: string) =>
+    Object.prototype.hasOwnProperty.call(values, key) ? String(values[key]) : match,
+  );
+}

@@ -345,8 +345,18 @@ export interface PreviewConfig {
   shortcuts?: ShortcutMap | false;
 
   /** Text overrides for i18n. */
-  labels?: Partial<PreviewLabels>;
+  labels?: PreviewLabelsInput;
 }
+
+/**
+ * Label overrides: any subset of `PreviewLabels`; grouped labels
+ * (`errorTitles`, `chartTypes`, `csvDelimiters`) may also be partial.
+ */
+export type PreviewLabelsInput = {
+  [K in keyof PreviewLabels]?: NonNullable<PreviewLabels[K]> extends string
+    ? PreviewLabels[K]
+    : Partial<NonNullable<PreviewLabels[K]>>;
+};
 
 export interface PreviewLabels {
   previous: string;
@@ -394,6 +404,104 @@ export interface PreviewLabels {
   passwordIncorrect: string;
   unlock: string;
   cancel: string;
+
+  /*
+   * Strings below may contain `{placeholders}`, which are filled in at render
+   * time (e.g. "Page {page} of {count}"). Keep the placeholders when translating.
+   */
+
+  /** Workspace chrome. */
+  /** {name} */
+  unsupportedDetail: string;
+  documentTools: string;
+  pagesGroup: string;
+  zoomGroup: string;
+  /** {percent} */
+  zoomStatus: string;
+  resetZoom: string;
+  fitWindow: string;
+  showOriginal: string;
+  showConverted: string;
+  convertedNotice: string;
+  tryOriginal: string;
+  /** {page} {count} */
+  pageOf: string;
+  /** {index} {count} */
+  documentCounter: string;
+  modalDescription: string;
+  compareTools: string;
+  resizePanes: string;
+  leftDocument: string;
+  rightDocument: string;
+  searching: string;
+  noResults: string;
+  /** {current} {total} */
+  matchOf: string;
+
+  /** Details panel. */
+  fieldName: string;
+  fieldType: string;
+  fieldSize: string;
+  fieldUploadedAt: string;
+  fieldUploadedBy: string;
+  fieldDescription: string;
+  yes: string;
+  no: string;
+
+  /** Error state titles, per error code. */
+  errorTitles: Record<PreviewErrorCode, string>;
+  /**
+   * Optional per-code messages shown instead of the renderer's detailed
+   * (English) message. Locale packs set these.
+   */
+  errorMessages?: Partial<Record<PreviewErrorCode, string>>;
+
+  /** PDF / PPTX. {page} / {slide} */
+  page: string;
+  pageThumbnails: string;
+  slide: string;
+  slideThumbnails: string;
+  /** {type} {series} */
+  chartLabel: string;
+  chartTypes: Record<'bar' | 'line' | 'area' | 'pie' | 'scatter' | 'radar', string>;
+  /** {index} */
+  chartSeries: string;
+
+  /** XLSX. */
+  worksheets: string;
+  readOnly: string;
+  /** {count} */
+  hiddenSheet: string;
+  /** {count} */
+  hiddenSheets: string;
+
+  /** CSV. {rows} {columns} {delimiter} */
+  csvSummary: string;
+  csvDelimiters: { comma: string; semicolon: string; tab: string; pipe: string };
+  csvLoading: string;
+  /** {rows} */
+  csvTruncated: string;
+  csvHeaderRow: string;
+
+  /** JSON / XML / Markdown. {name} */
+  sourceLabel: string;
+  /** {line} {column} */
+  errorPosition: string;
+  invalidJson: string;
+  invalidXml: string;
+  copyPath: string;
+  /** {path} */
+  copyPathOf: string;
+  copied: string;
+  expand: string;
+  collapse: string;
+  expandAll: string;
+  collapseAll: string;
+  nodeDetails: string;
+  attributes: string;
+  attribute: string;
+  value: string;
+  selectNode: string;
 }
 
 export type ResolvedPreviewConfig = Required<

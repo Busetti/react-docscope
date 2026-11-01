@@ -20,6 +20,7 @@ import {
 import type { PreviewLabels, RendererCapabilities, ResolvedPreviewConfig } from '../types';
 import type { PaneController } from '../hooks/usePaneController';
 import { IconButton, Separator } from './IconButton';
+import { fillLabel } from '../core/format';
 
 const ICON = 18;
 
@@ -64,11 +65,11 @@ export const PaneToolbar = memo(function PaneToolbar({
     <div
       className={`dsc-toolbar${compact ? ' dsc-toolbar--compact' : ''}`}
       role="toolbar"
-      aria-label="Document tools"
+      aria-label={labels.documentTools}
     >
       {start}
       {caps.pages && c.pageCount > 0 && (
-        <div className="dsc-group" role="group" aria-label="Pages">
+        <div className="dsc-group" role="group" aria-label={labels.pagesGroup}>
           <IconButton
             label={labels.previousPage}
             icon={<ChevronUp size={ICON} />}
@@ -76,7 +77,12 @@ export const PaneToolbar = memo(function PaneToolbar({
             disabled={c.view.page <= 1}
             shortcut={shortcutHint(config, 'prevPage')}
           />
-          <PageInput page={c.view.page} count={c.pageCount} onChange={c.actions.goToPage} />
+          <PageInput
+            page={c.view.page}
+            count={c.pageCount}
+            onChange={c.actions.goToPage}
+            label={labels.pageOf}
+          />
           <IconButton
             label={labels.nextPage}
             icon={<ChevronDown size={ICON} />}
@@ -89,7 +95,7 @@ export const PaneToolbar = memo(function PaneToolbar({
       {caps.zoom && (
         <>
           {caps.pages && c.pageCount > 0 && <Separator />}
-          <div className="dsc-group" role="group" aria-label="Zoom">
+          <div className="dsc-group" role="group" aria-label={labels.zoomGroup}>
             <IconButton
               label={labels.zoomOut}
               icon={<ZoomOut size={ICON} />}
@@ -101,8 +107,8 @@ export const PaneToolbar = memo(function PaneToolbar({
               type="button"
               className="dsc-zoom-value"
               onClick={c.actions.resetZoom}
-              aria-label={`Zoom ${zoomPct}%. Reset to 100%`}
-              title="Reset to 100%"
+              aria-label={fillLabel(labels.zoomStatus, { percent: zoomPct })}
+              title={labels.resetZoom}
             >
               {zoomPct}%
             </button>
@@ -123,7 +129,7 @@ export const PaneToolbar = memo(function PaneToolbar({
             )}
             {fits.includes('page') && (
               <IconButton
-                label={c.definition?.id === 'image' ? 'Fit to window' : labels.fitPage}
+                label={c.definition?.id === 'image' ? labels.fitWindow : labels.fitPage}
                 icon={<Scan size={ICON} />}
                 pressed={c.view.fitMode === 'page'}
                 onClick={() => c.actions.setFitMode('page')}
@@ -176,7 +182,7 @@ export const PaneToolbar = memo(function PaneToolbar({
       )}
       {c.canUseFallback && !compact && (
         <IconButton
-          label={c.usingFallback ? 'Show original' : 'Show converted version'}
+          label={c.usingFallback ? labels.showOriginal : labels.showConverted}
           icon={<GalleryVertical size={ICON} />}
           pressed={c.usingFallback}
           onClick={c.actions.toggleFallback}
@@ -201,10 +207,12 @@ function PageInput({
   page,
   count,
   onChange,
+  label,
 }: {
   page: number;
   count: number;
   onChange: (p: number) => void;
+  label: string;
 }) {
   const [value, setValue] = useState(String(page));
   useEffect(() => setValue(String(page)), [page]);
@@ -213,7 +221,7 @@ function PageInput({
       <input
         type="text"
         inputMode="numeric"
-        aria-label={`Page ${page} of ${count}`}
+        aria-label={fillLabel(label, { page, count })}
         value={value}
         size={Math.max(2, String(count).length)}
         onChange={(e) => setValue(e.target.value.replace(/[^\d]/g, ''))}

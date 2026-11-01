@@ -26,20 +26,6 @@ export function LoadingSkeleton({ label }: { label: string }) {
   );
 }
 
-const TITLES: Record<PreviewError['code'], string> = {
-  RESOLVE_FAILED: 'Unable to open document',
-  FETCH_FAILED: 'Download failed',
-  ACCESS_DENIED: 'Access denied',
-  NOT_FOUND: 'Document not found',
-  UNSUPPORTED_FORMAT: 'Preview not available',
-  TOO_LARGE: 'Document too large',
-  EMPTY_DOCUMENT: 'Empty document',
-  MALFORMED_DOCUMENT: 'Unable to read document',
-  RENDER_FAILED: 'Unable to display document',
-  DOWNLOAD_FAILED: 'Download failed',
-  PASSWORD_REQUIRED: 'Password required',
-};
-
 export interface MessageStateProps {
   icon?: ReactNode;
   title: string;
@@ -100,8 +86,8 @@ export function ErrorState({
     <MessageState
       tone={neutral ? 'neutral' : 'error'}
       icon={icon}
-      title={TITLES[error.code]}
-      message={error.message}
+      title={labels.errorTitles[error.code]}
+      message={labels.errorMessages?.[error.code] ?? error.message}
       actions={
         <>
           {retryable && onRetry && (

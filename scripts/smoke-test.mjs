@@ -89,6 +89,7 @@ try {
     join(app, 'src/main.tsx'),
     `import { createRoot } from 'react-dom/client';
 import { DocumentPreviewer, type DocumentResolver, type PreviewDocument } from 'react-docscope';
+import { de } from 'react-docscope/locales';
 import 'react-docscope/styles.css';
 
 const documents: PreviewDocument[] = [
@@ -99,7 +100,7 @@ const documents: PreviewDocument[] = [
 const resolver: DocumentResolver = async (doc) => ({ kind: 'url', url: '/' + doc.name });
 
 createRoot(document.getElementById('root')!).render(
-  <DocumentPreviewer documents={documents} resolver={resolver} config={{ height: 700 }} />,
+  <DocumentPreviewer documents={documents} resolver={resolver} config={{ height: 700, labels: { retry: de.retry } }} />,
 );
 `,
   );

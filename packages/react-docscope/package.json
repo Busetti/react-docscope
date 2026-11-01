@@ -1,7 +1,7 @@
 {
   "name": "react-docscope",
   "version": "0.1.0",
-  "description": "Universal, read-only React document preview: PDF, images, DOCX, PPTX, XLSX, CSV, Markdown, TXT, JSON, XML and video — with search, zoom, attachments navigation and split-screen comparison.",
+  "description": "Universal, read-only React document preview: PDF, images, DOCX, PPTX, XLSX, CSV, Markdown, TXT, JSON, XML and video \u2014 with search, zoom, attachments navigation and split-screen comparison.",
   "license": "MIT",
   "author": "Gurunath Busetti",
   "homepage": "https://github.com/Busetti/react-docscope#readme",
@@ -38,6 +38,11 @@
       "types": "./dist/types/index.d.ts",
       "import": "./dist/index.js",
       "default": "./dist/index.js"
+    },
+    "./locales": {
+      "types": "./dist/types/locales/index.d.ts",
+      "import": "./dist/locales.js",
+      "default": "./dist/locales.js"
     },
     "./styles.css": "./dist/styles.css",
     "./package.json": "./package.json"

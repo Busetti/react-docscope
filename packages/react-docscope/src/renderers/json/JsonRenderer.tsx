@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Copy, Check } from 'lucide-react';
-import type { RendererProps } from '../../types';
+import type { PreviewLabels, RendererProps } from '../../types';
+import { fillLabel } from '../../core/format';
 import { toPreviewError } from '../../core/errors';
 import { useAsync, useLatest, useLineSearch } from '../shared/hooks';
 import { TextLines } from '../shared/TextLines';
@@ -23,7 +24,15 @@ type Parsed =
   | { ok: true; value: unknown; pretty: string }
   | { ok: false; error: ReturnType<typeof describeJsonError> };
 
-export default function JsonRenderer({ document, source, search, view, host }: RendererProps) {
+export default function JsonRenderer({
+  document,
+  source,
+  search,
+  view,
+  host,
+  config,
+}: RendererProps) {
+  const labels = config.labels;
   const { value: text, error } = useAsync(() => source.getText(), [source]);
   const hostRef = useLatest(host);
 
@@ -50,9 +59,12 @@ export default function JsonRenderer({ document, source, search, view, host }: R
       <div className="dsc-stack">
         {!parsed.ok && (
           <div className="dsc-inline-error" role="alert">
-            <strong>Invalid JSON.</strong> {parsed.error.message}
+            <strong>{labels.invalidJson}</strong> {parsed.error.message}
             {parsed.error.line !== undefined &&
-              ` (line ${parsed.error.line}, column ${parsed.error.column})`}
+              ` ${fillLabel(labels.errorPosition, {
+                line: parsed.error.line,
+                column: parsed.error.column ?? 1,
+              })}`}
           </div>
         )}
         <RawJson
@@ -60,7 +72,7 @@ export default function JsonRenderer({ document, source, search, view, host }: R
           search={search}
           host={host}
           zoom={view.zoom}
-          label={`${document.name} (source)`}
+          label={fillLabel(labels.sourceLabel, { name: document.name })}
         />
       </div>
     );
@@ -72,6 +84,7 @@ export default function JsonRenderer({ document, source, search, view, host }: R
       host={host}
       zoom={view.zoom}
       label={document.name}
+      labels={labels}
     />
   );
 }
@@ -111,12 +124,14 @@ function JsonTree({
   host,
   zoom,
   label,
+  labels,
 }: {
   value: unknown;
   search: RendererProps['search'];
   host: RendererProps['host'];
   zoom: number;
   label: string;
+  labels: PreviewLabels;
 }) {
   const index = useMemo(() => indexJson(value), [value]);
   const [expanded, setExpanded] = useState(() => defaultExpanded(index));
@@ -186,8 +201,8 @@ function JsonTree({
             type="button"
             className="dsc-tree-action"
             tabIndex={-1}
-            aria-label={`Copy path ${n.id}`}
-            title={`Copy path ${n.id}`}
+            aria-label={fillLabel(labels.copyPathOf, { path: n.id })}
+            title={fillLabel(labels.copyPathOf, { path: n.id })}
             onClick={(e) => {
               e.stopPropagation();
               void onCopy(n.id);
@@ -202,7 +217,7 @@ function JsonTree({
         </>
       );
     },
-    [copied, onCopy],
+    [copied, onCopy, labels.copyPathOf],
   );
 
   return (
@@ -217,6 +232,8 @@ function JsonTree({
         onSelect={(r) => setSelected(r.id)}
         zoom={zoom}
         label={label}
+        expandLabel={labels.expand}
+        collapseLabel={labels.collapse}
       />
       <div className="dsc-statusbar" aria-live="polite">
         <span className="dsc-statusbar-path">{selected ?? '$'}</span>
@@ -225,21 +242,21 @@ function JsonTree({
           className="dsc-link-button"
           onClick={() => void onCopy(selected ?? '$')}
         >
-          {copied === (selected ?? '$') ? 'Copied' : 'Copy path'}
+          {copied === (selected ?? '$') ? labels.copied : labels.copyPath}
         </button>
         <button
           type="button"
           className="dsc-link-button"
           onClick={() => setExpanded(new Set(index.keys()))}
         >
-          Expand all
+          {labels.expandAll}
         </button>
         <button
           type="button"
           className="dsc-link-button"
           onClick={() => setExpanded(new Set(['$']))}
         >
-          Collapse all
+          {labels.collapseAll}
         </button>
       </div>
     </div>

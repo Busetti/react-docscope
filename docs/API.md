@@ -1,6 +1,7 @@
 # API reference
 
 All exports come from `react-docscope`. Styles: `import 'react-docscope/styles.css'` (once).
+Translations: `import { de, es, fr, hi, en } from 'react-docscope/locales'` (each a complete `PreviewLabels`).
 
 ## Components
 
@@ -118,6 +119,7 @@ interface PreviewError {
     | 'EMPTY_DOCUMENT'
     | 'MALFORMED_DOCUMENT'
     | 'RENDER_FAILED'
+    | 'PASSWORD_REQUIRED' // encrypted PDF whose password prompt was dismissed
     | 'DOWNLOAD_FAILED';
   message: string; // safe to display & log — URLs and tokens removed
   documentId?: string;
@@ -186,3 +188,11 @@ Mark scrollable areas with `data-dsc-scroll-container` to take part in compare-m
 `defineRenderer`, `RendererRegistry`, `createDefaultRegistry`, `builtInRenderers`,
 `resolveConfig`, `DEFAULT_CONFIG`, `DEFAULT_LABELS`, `DEFAULT_SHORTCUTS`, `defaultResolver`,
 `DocumentPreviewError`, `getExtension`, `getMimeType`, `formatBytes`.
+
+### Labels
+
+`PreviewLabels` holds every UI string and ARIA label; `config.labels` accepts a
+`PreviewLabelsInput` (any subset; grouped labels — `errorTitles`, `errorMessages`, `chartTypes`,
+`csvDelimiters` — may be partial and are merged one level deep). Placeholders like `{page}` are
+filled at render time. `labels.errorMessages[code]`, when set, replaces the detailed message shown
+in error states (the `onError` payload keeps the original English message for logging).

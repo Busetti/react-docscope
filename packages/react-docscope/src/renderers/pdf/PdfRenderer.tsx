@@ -5,6 +5,7 @@ import type { PreviewErrorCode, RendererProps } from '../../types';
 import { errorFromStatus, isAbortError } from '../../core/errors';
 import { useElementSize, useLatest, useWheelZoom } from '../shared/hooks';
 import { collectTextNodes } from '../../core/highlight';
+import { fillLabel } from '../../core/format';
 import { enableMainThreadFallback, ensurePdfWorker } from './pdfWorker';
 import { PasswordPrompt } from './PasswordPrompt';
 import {
@@ -376,6 +377,8 @@ export default function PdfRenderer({
           current={view.page}
           rotation={view.rotation}
           onSelect={(p) => hostRef.current.setCurrentPage(p)}
+          label={config.labels.pageThumbnails}
+          pageLabel={config.labels.page}
         />
       )}
       <div
@@ -408,6 +411,7 @@ export default function PdfRenderer({
                 pageText={textCache.current.get(i + 1)}
                 matches={matchesByPage.get(i + 1)}
                 activeIndex={search.activeIndex}
+                pageLabel={config.labels.page}
               />
             ))}
         </div>
@@ -428,6 +432,7 @@ interface PdfPageProps {
   pageText: PdfPageText | undefined;
   matches: Array<PdfMatch & { index: number }> | undefined;
   activeIndex: number;
+  pageLabel: string;
 }
 
 const PdfPage = memo(function PdfPage({
@@ -442,6 +447,7 @@ const PdfPage = memo(function PdfPage({
   pageText,
   matches,
   activeIndex,
+  pageLabel,
 }: PdfPageProps) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const textRef = useRef<HTMLDivElement>(null);
@@ -604,7 +610,7 @@ const PdfPage = memo(function PdfPage({
       className="dsc-pdf-page"
       data-page={index + 1}
       role="region"
-      aria-label={`Page ${index + 1}`}
+      aria-label={fillLabel(pageLabel, { page: index + 1 })}
       style={{ top, width, height }}
     >
       <canvas ref={canvasRef} aria-hidden="true" data-rendered={rendered ? 'true' : 'false'} />
@@ -632,12 +638,16 @@ function PdfThumbnails({
   current,
   rotation,
   onSelect,
+  label,
+  pageLabel,
 }: {
   doc: PDFDocumentProxy;
   sizes: PageSize[];
   current: number;
   rotation: number;
   onSelect: (page: number) => void;
+  label: string;
+  pageLabel: string;
 }) {
   const ref = useRef<HTMLDivElement>(null);
   const rotated = Math.abs(rotation % 180) === 90;
@@ -656,14 +666,14 @@ function PdfThumbnails({
     virtualizer.scrollToIndex(current - 1, { align: 'auto' });
   }, [current, virtualizer]);
   return (
-    <nav ref={ref} className="dsc-thumbs" aria-label="Page thumbnails">
+    <nav ref={ref} className="dsc-thumbs" aria-label={label}>
       <div style={{ height: virtualizer.getTotalSize(), position: 'relative' }}>
         {virtualizer.getVirtualItems().map((item) => (
           <button
             key={item.key}
             type="button"
             className="dsc-thumb"
-            aria-label={`Page ${item.index + 1}`}
+            aria-label={fillLabel(pageLabel, { page: item.index + 1 })}
             aria-current={current === item.index + 1 ? 'true' : undefined}
             style={{
               position: 'absolute',

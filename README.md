@@ -7,8 +7,9 @@ zoom, attachment navigation, metadata, downloads and split-screen comparison.
 - **11 formats, one interface** — capability-driven toolbar (no video controls on PDFs).
 - **You own storage** — a tiny resolver contract; S3 / GCS / VAST / your API stay in your app.
 - **Signed URLs that expire** are re-resolved automatically; secrets never reach logs.
-- **Fast with big files** — lazy renderers, PDF worker + visible-page rendering, virtualized
+- **Fast with big files** — lazy renderers, PDF and Excel parsing in Web Workers, visible-page rendering, virtualized
   grids, lists and trees, bounded caches, request cancellation.
+- **Translated** — every UI string is a label; German, French, Spanish and Hindi packs included.
 - **Accessible** — keyboard shortcuts, focus-trapped modal, ARIA grid/tree/listbox, axe-tested.
 - **Zero app-wide setup** — no Tailwind, Redux or UI kit; scoped CSS + variables, light/dark/system.
 - **React 18 and 19**, ESM, TypeScript strict types, MIT.
@@ -17,8 +18,8 @@ zoom, attachment navigation, metadata, downloads and split-screen comparison.
 npm install react-docscope
 ```
 
-> The npm name and GitHub repository are configurable placeholders until the first release
-> (`packages/react-docscope/package.json` → `name`, `repository`).
+**Live demo:** [busetti.github.io/react-docscope](https://busetti.github.io/react-docscope/) ·
+**Storybook:** [/storybook](https://busetti.github.io/react-docscope/storybook/)
 
 ---
 
@@ -76,19 +77,19 @@ render without remounting the modal.
 
 ## Supported formats
 
-| Format     | Extensions                                | Engine                         | Search               | Highlights        | Zoom / fit      | Pages / thumbnails | Notes                                                                                 |
-| ---------- | ----------------------------------------- | ------------------------------ | -------------------- | ----------------- | --------------- | ------------------ | ------------------------------------------------------------------------------------- |
-| PDF        | `pdf`                                     | pdf.js 6 (worker)              | ✅ text layer        | ✅ glyph-accurate | ✅ width / page | ✅ / ✅            | continuous or single page, rotation, selectable text, range-request streaming         |
-| Images     | jpg, jpeg, png, gif, webp, svg, avif, bmp | browser                        | —                    | —                 | ✅ fit / 1:1    | —                  | rotate, pan by drag, ctrl/⌘+wheel zoom; SVG scripts never run                         |
-| Word       | `docx`                                    | docx-preview                   | ✅                   | ✅                | ✅ width        | —                  | headers, footers, tables, images, lists                                               |
-| PowerPoint | `pptx`                                    | pptxtojson + DocScope renderer | ✅                   | ✅                | ✅ width / page | ✅ / ✅            | **best effort** — see limitations; PDF fallback supported                             |
-| Excel      | `xlsx`, `xlsm`                            | DocScope read-only reader      | ✅ cells             | ✅                | ✅              | sheet tabs         | cached formula results, number formats, fonts, fills, borders, merges; **no editing** |
-| CSV / TSV  | csv, tsv                                  | Papa Parse (streaming)         | ✅ cells             | ✅                | ✅              | —                  | delimiter + header detection, 2M-row cap                                              |
-| Markdown   | md, markdown                              | react-markdown + GFM           | ✅                   | ✅                | ✅              | —                  | raw view; raw HTML and `javascript:` URLs are not rendered                            |
-| Text       | txt, log, yaml, …                         | DocScope                       | ✅                   | ✅                | ✅              | —                  | virtualized lines, 12 MB logs stay smooth                                             |
-| JSON       | json, geojson, `*+json`                   | DocScope                       | ✅ keys & values     | ✅                | ✅              | —                  | tree / raw, expand-collapse, copy JSON path, syntax colours, invalid-JSON location    |
-| XML        | xml, xsd, rss, …                          | browser DOMParser              | ✅ tags, attrs, text | ✅                | ✅              | —                  | tree / raw, attribute inspector, copy node path, no external entities                 |
-| Video      | mp4, webm, ogv, mov                       | native `<video>`               | —                    | —                 | —               | —                  | browser controls (seek, volume, fullscreen, PiP); streamed, not downloaded            |
+| Format     | Extensions                                | Engine                         | Search               | Highlights        | Zoom / fit      | Pages / thumbnails | Notes                                                                                  |
+| ---------- | ----------------------------------------- | ------------------------------ | -------------------- | ----------------- | --------------- | ------------------ | -------------------------------------------------------------------------------------- |
+| PDF        | `pdf`                                     | pdf.js 6 (worker)              | ✅ text layer        | ✅ glyph-accurate | ✅ width / page | ✅ / ✅            | continuous or single page, rotation, selectable text, range streaming, password prompt |
+| Images     | jpg, jpeg, png, gif, webp, svg, avif, bmp | browser                        | —                    | —                 | ✅ fit / 1:1    | —                  | rotate, pan by drag, ctrl/⌘+wheel zoom; SVG scripts never run                          |
+| Word       | `docx`                                    | docx-preview                   | ✅                   | ✅                | ✅ width        | —                  | headers, footers, tables, images, lists                                                |
+| PowerPoint | `pptx`                                    | pptxtojson + DocScope renderer | ✅                   | ✅                | ✅ width / page | ✅ / ✅            | **best effort**; charts as SVG; PDF fallback supported                                 |
+| Excel      | `xlsx`, `xlsm`                            | DocScope reader (Web Worker)   | ✅ cells             | ✅                | ✅              | sheet tabs         | cached formula results, number formats, fonts, fills, borders, merges; **no editing**  |
+| CSV / TSV  | csv, tsv                                  | Papa Parse (streaming)         | ✅ cells             | ✅                | ✅              | —                  | delimiter + header detection, 2M-row cap                                               |
+| Markdown   | md, markdown                              | react-markdown + GFM           | ✅                   | ✅                | ✅              | —                  | raw view; raw HTML and `javascript:` URLs are not rendered                             |
+| Text       | txt, log, yaml, …                         | DocScope                       | ✅                   | ✅                | ✅              | —                  | virtualized lines, 12 MB logs stay smooth                                              |
+| JSON       | json, geojson, `*+json`                   | DocScope                       | ✅ keys & values     | ✅                | ✅              | —                  | tree / raw, expand-collapse, copy JSON path, syntax colours, invalid-JSON location     |
+| XML        | xml, xsd, rss, …                          | browser DOMParser              | ✅ tags, attrs, text | ✅                | ✅              | —                  | tree / raw, attribute inspector, copy node path, no external entities                  |
+| Video      | mp4, webm, ogv, mov                       | native `<video>`               | —                    | —                 | —               | —                  | browser controls (seek, volume, fullscreen, PiP); streamed, not downloaded             |
 
 Unknown formats show an "unsupported" state with a download button. You can add renderers for
 anything else (see [Custom renderers](#custom-renderers)).
@@ -163,7 +164,8 @@ Error messages surfaced to the UI and to `onError` are scrubbed of URLs and bear
     prefetchMaxSize: 5 * 1024 * 1024,
     cacheSize: 64 * 1024 * 1024,
     shortcuts: { search: ['mod+k'], rotate: false }, // or `false` to disable all
-    labels: { download: 'Herunterladen' }, // i18n
+    workers: true, // parse XLSX off the main thread (automatic fallback)
+    labels: { download: 'Save' }, // any UI string — or a locale pack, see below
   }}
 />
 ```
@@ -244,6 +246,25 @@ Every colour, radius and font is a CSS variable on `.dsc-root`:
 
 ---
 
+## Translations
+
+Every visible string and ARIA label comes from `config.labels`. Ready-made packs for German,
+French, Spanish and Hindi ship in a separate entry point (not part of the main bundle):
+
+```tsx
+import { de } from 'react-docscope/locales';
+
+<DocumentPreviewer config={{ labels: de }} … />
+// tweak single strings
+<DocumentPreviewer config={{ labels: { ...de, download: 'Speichern' } }} … />
+```
+
+Labels may contain placeholders such as `Page {page} of {count}`; keep them when translating.
+Locale packs also replace the detailed (English) error messages via `labels.errorMessages`.
+New languages are welcome — copy `src/locales/de.ts`; the test suite checks every key and placeholder.
+
+---
+
 ## PDF worker & bundlers
 
 PDF rendering uses pdf.js in a **Web Worker**. By default the worker code ships in a lazily loaded
@@ -258,20 +279,29 @@ config={{ pdf: { workerSrc: '/pdf.worker.min.mjs' } }} // copy from pdfjs-dist/b
 Optional pdf.js assets for exotic PDFs: `pdf.cMapUrl` (CJK fonts), `pdf.standardFontDataUrl`,
 `pdf.wasmUrl` (JPEG 2000 / JBIG2).
 
+Encrypted PDFs show an accessible password prompt; the password is handed to pdf.js only and
+never logged or stored. Dismissing it reports `PASSWORD_REQUIRED`.
+
+Excel workbooks are parsed in an inline Web Worker too (same `blob:` mechanism, no setup). If a
+worker cannot start, parsing silently falls back to the main thread; `workers: false` forces that.
+
 ---
 
 ## Performance
 
 Measured on the large fixtures in a headless Chromium (see [docs/PERFORMANCE.md](docs/PERFORMANCE.md)):
 
-| Document                    | Ready  | Search      | DOM nodes |
-| --------------------------- | ------ | ----------- | --------- |
-| PDF, 400 pages              | ~1.4 s | progressive | ~580      |
-| CSV, 200 000 rows (13 MB)   | ~0.8 s | ~1.0 s      | ~670      |
-| XLSX, 20 000 × 12 cells     | ~1.6 s | ~0.5 s      | ~1 000    |
-| Text, 200 000 lines (12 MB) | ~0.5 s | ~0.6 s      | ~610      |
-| JSON, 20 000 objects        | ~0.7 s | ~0.6 s      | ~740      |
-| XML, 20 000 elements        | ~1.3 s | ~0.5 s      | ~940      |
+| Document                  | Ready  | Search      | DOM nodes |
+| ------------------------- | ------ | ----------- | --------- |
+| PDF, 400 pages            | ~1.4 s | progressive | ~580      |
+| CSV, 200 000 rows (13 MB) | ~0.8 s | ~1.0 s      | ~670      |
+| XLSX, 20 000 × 12 cells   | ~1.6 s | ~0.5 s      | ~1 000    |
+
+With the default Web Worker the XLSX parse leaves the main thread: the longest UI block while
+opening that workbook drops from ~840 ms to ~110 ms.
+| Text, 200 000 lines (12 MB) | ~0.5 s | ~0.6 s | ~610 |
+| JSON, 20 000 objects | ~0.7 s | ~0.6 s | ~740 |
+| XML, 20 000 elements | ~1.3 s | ~0.5 s | ~940 |
 
 Initial JS for an app using the previewer is ~139 kB gzip including React; every renderer and its
 dependencies load on demand.
@@ -285,16 +315,17 @@ dependencies load on demand.
 
 ## Known limitations
 
-- **PPTX** is best effort: text, shapes, images, tables and groups render; charts, SmartArt
-  styling, animations, embedded media and some effects do not. Provide `document.fallback`
+- **PPTX** is best effort: text, shapes, images, tables, groups and charts (bar/column, line,
+  area, pie/doughnut, scatter, radar — drawn from cached values) render; other chart types,
+  SmartArt styling, animations, embedded media and some effects do not. Provide `document.fallback`
   (e.g. a server-side PDF export) and the previewer uses it automatically when the original
   cannot be rendered — users can toggle between both.
 - **XLSX** shows cached formula results (no recalculation), no charts/images/conditional formatting,
   no freeze panes; fractions in number formats fall back to General.
 - **DOCX** fidelity depends on docx-preview (complex floating layouts, fields and some numbering).
-- **Legacy formats** (`.doc`, `.xls`, `.ppt`), password-protected PDFs and DRM files are not supported.
-- XLSX/CSV/DOCX/PPTX/Text are parsed on the main thread (async, chunked where possible); very large
-  workbooks (> ~1M cells) take a few seconds.
+- **Legacy formats** (`.doc`, `.xls`, `.ppt`) and DRM-protected files are not supported.
+- DOCX/PPTX/Text are parsed on the main thread (CSV streams in small chunks; XLSX uses a worker);
+  very large workbooks (> ~1M cells) take a few seconds.
 - Video playback depends on the browser's codecs.
 
 ## Browser support
@@ -321,6 +352,7 @@ pnpm test           # Jest (unit + integration)
 pnpm test:coverage  # with thresholds (≥95% statements, ≥90% branches)
 pnpm test:e2e       # Playwright (builds first)
 pnpm storybook
+pnpm build:pages    # static demo site (playground + Storybook) into ./site
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and

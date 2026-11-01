@@ -1,5 +1,6 @@
 import { memo, useEffect, useRef } from 'react';
 import { CaseSensitive, ChevronDown, ChevronUp, Search, X } from 'lucide-react';
+import { fillLabel } from '../core/format';
 import type { PreviewLabels } from '../types';
 import type { PaneController } from '../hooks/usePaneController';
 import { IconButton } from './IconButton';
@@ -25,10 +26,16 @@ export const SearchBar = memo(function SearchBar({
   const status = !search.input.trim()
     ? ''
     : pending
-      ? 'Searching…'
+      ? labels.searching
       : search.count === 0
-        ? 'No results'
-        : `${search.activeIndex + 1} of ${search.count >= 10_000 ? '10,000+' : search.count}`;
+        ? labels.noResults
+        : fillLabel(labels.matchOf, {
+            current: (search.activeIndex + 1).toLocaleString(),
+            total:
+              search.count >= 10_000
+                ? `${(10_000).toLocaleString()}+`
+                : search.count.toLocaleString(),
+          });
 
   return (
     <div className="dsc-searchbar" role="search">

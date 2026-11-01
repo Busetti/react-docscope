@@ -1,7 +1,8 @@
-import { memo, useEffect, useMemo, useRef, useState } from 'react';
+import { memo, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { RendererProps } from '../../types';
-import { ChartPaletteContext, OFFICE_PALETTE, SlideChart } from './SlideChart';
+import { OFFICE_PALETTE, SlideChart, SlideContext } from './SlideChart';
+import { fillLabel } from '../../core/format';
 import { isAbortError, toPreviewError } from '../../core/errors';
 import { useAsync, useDomSearch, useElementSize, useLatest, useWheelZoom } from '../shared/hooks';
 import {
@@ -26,7 +27,14 @@ const PT_TO_PX = 96 / 72;
  * not rendered faithfully — supply `document.fallback` (e.g. a PDF export) for
  * pixel-perfect output.
  */
-export default function PptxRenderer({ document, source, search, view, host }: RendererProps) {
+export default function PptxRenderer({
+  document,
+  source,
+  search,
+  view,
+  host,
+  config,
+}: RendererProps) {
   const hostRef = useLatest(host);
   const scrollRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
@@ -67,10 +75,10 @@ export default function PptxRenderer({ document, source, search, view, host }: R
     }
   }, [deck, hostRef]);
 
-  const palette = useMemo(() => {
+  const slideContext = useMemo(() => {
     const colors = (deck?.themeColors ?? []).filter((c) => /^#[0-9a-f]{6}$/i.test(c));
-    return colors.length ? colors : OFFICE_PALETTE;
-  }, [deck]);
+    return { palette: colors.length ? colors : OFFICE_PALETTE, labels: config.labels };
+  }, [deck, config.labels]);
 
   const slideW = (deck?.size.width ?? 960) * PT_TO_PX;
   const slideH = (deck?.size.height ?? 540) * PT_TO_PX;
@@ -126,17 +134,21 @@ export default function PptxRenderer({ document, source, search, view, host }: R
 
   if (!deck?.slides?.length) return null;
   return (
-    <ChartPaletteContext.Provider value={palette}>
+    <SlideContext.Provider value={slideContext}>
       <div className="dsc-paged">
         {view.showThumbnails && (
-          <nav className="dsc-thumbs" aria-label="Slide thumbnails" data-dsc-search-ignore="">
+          <nav
+            className="dsc-thumbs"
+            aria-label={config.labels.slideThumbnails}
+            data-dsc-search-ignore=""
+          >
             {deck.slides.map((slide, i) => (
               <button
                 key={i}
                 type="button"
                 className="dsc-thumb"
                 aria-current={view.page === i + 1 ? 'true' : undefined}
-                aria-label={`Slide ${i + 1}: ${slideText(slide).slice(0, 80)}`}
+                aria-label={`${fillLabel(config.labels.slide, { slide: i + 1 })}: ${slideText(slide).slice(0, 80)}`}
                 onClick={() => hostRef.current.setCurrentPage(i + 1)}
               >
                 <LazySlide
@@ -175,7 +187,7 @@ export default function PptxRenderer({ document, source, search, view, host }: R
           </div>
         </div>
       </div>
-    </ChartPaletteContext.Provider>
+    </SlideContext.Provider>
   );
 }
 
@@ -198,6 +210,7 @@ function LazySlide({
   eager?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
+  const slideLabel = useContext(SlideContext).labels.slide;
   const [visible, setVisible] = useState(eager);
   useEffect(() => {
     if (visible || !ref.current || typeof IntersectionObserver === 'undefined') {
@@ -224,7 +237,7 @@ function LazySlide({
       data-slide={index + 1}
       role="group"
       aria-roledescription="slide"
-      aria-label={`Slide ${index + 1}`}
+      aria-label={fillLabel(slideLabel, { slide: index + 1 })}
       style={{ width: width * zoom, height: height * zoom }}
     >
       {visible && <SlideView slide={slide} width={width} height={height} zoom={zoom} />}
