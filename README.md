@@ -356,7 +356,8 @@ pnpm build:pages    # static demo site (playground + Storybook) into ./site
 ```
 
 See [CONTRIBUTING.md](CONTRIBUTING.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and
-[docs/RELEASING.md](docs/RELEASING.md).
+[docs/RELEASING.md](docs/RELEASING.md). New here? Start with the [project guide](docs/GUIDE.md):
+what was built, Storybook, npm publishing and the change → release workflow.
 
 ## License
 
