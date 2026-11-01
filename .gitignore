@@ -18,3 +18,4 @@ tests/fixtures/large/
 packages/react-docscope/README.md
 packages/react-docscope/LICENSE
 packages/react-docscope/THIRD_PARTY_NOTICES.md
+__pycache__/

@@ -94,18 +94,21 @@ describe('errors', () => {
   });
 
   it('has a default message for every code', () => {
-    const codes: PreviewErrorCode[] = [
-      'RESOLVE_FAILED',
-      'FETCH_FAILED',
-      'ACCESS_DENIED',
-      'NOT_FOUND',
-      'UNSUPPORTED_FORMAT',
-      'TOO_LARGE',
-      'EMPTY_DOCUMENT',
-      'MALFORMED_DOCUMENT',
-      'RENDER_FAILED',
-      'DOWNLOAD_FAILED',
-    ];
+    // A Record forces this list to stay in sync with the PreviewErrorCode union.
+    const all: Record<PreviewErrorCode, true> = {
+      RESOLVE_FAILED: true,
+      FETCH_FAILED: true,
+      ACCESS_DENIED: true,
+      NOT_FOUND: true,
+      UNSUPPORTED_FORMAT: true,
+      TOO_LARGE: true,
+      EMPTY_DOCUMENT: true,
+      MALFORMED_DOCUMENT: true,
+      RENDER_FAILED: true,
+      DOWNLOAD_FAILED: true,
+      PASSWORD_REQUIRED: true,
+    };
+    const codes = Object.keys(all) as PreviewErrorCode[];
     for (const c of codes) expect(defaultMessage(c).length).toBeGreaterThan(5);
   });
 

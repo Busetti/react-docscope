@@ -1,6 +1,7 @@
 import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import type { CSSProperties } from 'react';
 import type { RendererProps } from '../../types';
+import { ChartPaletteContext, OFFICE_PALETTE, SlideChart } from './SlideChart';
 import { isAbortError, toPreviewError } from '../../core/errors';
 import { useAsync, useDomSearch, useElementSize, useLatest, useWheelZoom } from '../shared/hooks';
 import {
@@ -20,7 +21,8 @@ const PT_TO_PX = 96 / 72;
 /**
  * Best-effort PPTX preview built on pptxtojson (MIT): text, shapes (with
  * preset/custom geometry paths), images, tables, groups and backgrounds.
- * Charts, SmartArt styling, animations, embedded media and some effects are
+ * Charts are drawn as SVG from their cached values (bar/column, line, area,
+ * pie/doughnut, scatter, radar). SmartArt styling, animations, embedded media and some effects are
  * not rendered faithfully — supply `document.fallback` (e.g. a PDF export) for
  * pixel-perfect output.
  */
@@ -64,6 +66,11 @@ export default function PptxRenderer({ document, source, search, view, host }: R
       hostRef.current.setReady();
     }
   }, [deck, hostRef]);
+
+  const palette = useMemo(() => {
+    const colors = (deck?.themeColors ?? []).filter((c) => /^#[0-9a-f]{6}$/i.test(c));
+    return colors.length ? colors : OFFICE_PALETTE;
+  }, [deck]);
 
   const slideW = (deck?.size.width ?? 960) * PT_TO_PX;
   const slideH = (deck?.size.height ?? 540) * PT_TO_PX;
@@ -119,54 +126,56 @@ export default function PptxRenderer({ document, source, search, view, host }: R
 
   if (!deck?.slides?.length) return null;
   return (
-    <div className="dsc-paged">
-      {view.showThumbnails && (
-        <nav className="dsc-thumbs" aria-label="Slide thumbnails" data-dsc-search-ignore="">
-          {deck.slides.map((slide, i) => (
-            <button
-              key={i}
-              type="button"
-              className="dsc-thumb"
-              aria-current={view.page === i + 1 ? 'true' : undefined}
-              aria-label={`Slide ${i + 1}: ${slideText(slide).slice(0, 80)}`}
-              onClick={() => hostRef.current.setCurrentPage(i + 1)}
-            >
+    <ChartPaletteContext.Provider value={palette}>
+      <div className="dsc-paged">
+        {view.showThumbnails && (
+          <nav className="dsc-thumbs" aria-label="Slide thumbnails" data-dsc-search-ignore="">
+            {deck.slides.map((slide, i) => (
+              <button
+                key={i}
+                type="button"
+                className="dsc-thumb"
+                aria-current={view.page === i + 1 ? 'true' : undefined}
+                aria-label={`Slide ${i + 1}: ${slideText(slide).slice(0, 80)}`}
+                onClick={() => hostRef.current.setCurrentPage(i + 1)}
+              >
+                <LazySlide
+                  slide={slide}
+                  width={slideW}
+                  height={slideH}
+                  zoom={140 / slideW}
+                  root={null}
+                  index={i}
+                />
+                <span className="dsc-thumb-label">{i + 1}</span>
+              </button>
+            ))}
+          </nav>
+        )}
+        <div
+          ref={scrollRef}
+          className="dsc-scroll dsc-slides"
+          data-dsc-scroll-container=""
+          tabIndex={0}
+          aria-label={document.name}
+        >
+          <div ref={contentRef} className="dsc-slides-inner" style={{ padding: GAP, gap: GAP }}>
+            {deck.slides.map((slide, i) => (
               <LazySlide
+                key={i}
                 slide={slide}
                 width={slideW}
                 height={slideH}
-                zoom={140 / slideW}
-                root={null}
+                zoom={zoom}
+                root={scrollRef.current}
                 index={i}
+                eager={i < 2}
               />
-              <span className="dsc-thumb-label">{i + 1}</span>
-            </button>
-          ))}
-        </nav>
-      )}
-      <div
-        ref={scrollRef}
-        className="dsc-scroll dsc-slides"
-        data-dsc-scroll-container=""
-        tabIndex={0}
-        aria-label={document.name}
-      >
-        <div ref={contentRef} className="dsc-slides-inner" style={{ padding: GAP, gap: GAP }}>
-          {deck.slides.map((slide, i) => (
-            <LazySlide
-              key={i}
-              slide={slide}
-              width={slideW}
-              height={slideH}
-              zoom={zoom}
-              root={scrollRef.current}
-              index={i}
-              eager={i < 2}
-            />
-          ))}
+            ))}
+          </div>
         </div>
       </div>
-    </div>
+    </ChartPaletteContext.Provider>
   );
 }
 
@@ -351,11 +360,7 @@ export function SlideElement({ el }: { el: PptxElement }) {
         </div>
       );
     case 'chart':
-      return (
-        <div className="dsc-slide-el dsc-slide-placeholder" style={box(el)}>
-          Chart ({el.chartType ?? 'chart'}) — not rendered in preview
-        </div>
-      );
+      return <SlideChart el={el} style={box(el)} />;
     case 'video':
     case 'audio':
       return (

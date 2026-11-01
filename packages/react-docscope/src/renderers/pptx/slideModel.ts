@@ -48,6 +48,8 @@ export interface PptxSlide {
 export interface PptxDeck {
   slides: PptxSlide[];
   size: { width: number; height: number };
+  /** Theme accent colours (accent1–6). */
+  themeColors?: string[];
 }
 
 /**

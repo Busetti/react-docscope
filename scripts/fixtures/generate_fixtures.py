@@ -178,6 +178,60 @@ def make_docx() -> None:
 
 
 # ---------------------------------------------------------------- pptx
+def make_chart_pptx() -> None:
+    from pptx import Presentation
+    from pptx.chart.data import CategoryChartData, XyChartData
+    from pptx.enum.chart import XL_CHART_TYPE, XL_LEGEND_POSITION
+    from pptx.util import Inches
+
+    prs = Presentation()
+    prs.slide_width, prs.slide_height = Inches(13.333), Inches(7.5)
+    cats = ["Q1", "Q2", "Q3", "Q4"]
+    series = {"North": (12, 18, 22, 30), "South": (9, 14, 11, 19), "West": (5, 8, 13, 16)}
+
+    def cat_data(n=3):
+        d = CategoryChartData()
+        d.categories = cats
+        for name, vals in list(series.items())[:n]:
+            d.add_series(name, vals)
+        return d
+
+    def slide(title):
+        s = prs.slides.add_slide(prs.slide_layouts[5])
+        s.shapes.title.text = title
+        return s
+
+    left, top, w, h = Inches(0.8), Inches(1.6), Inches(5.6), Inches(5.2)
+    s = slide("Revenue by region")
+    s.shapes.add_chart(XL_CHART_TYPE.COLUMN_CLUSTERED, left, top, w, h, cat_data())
+    ch = s.shapes.add_chart(
+        XL_CHART_TYPE.BAR_STACKED, Inches(6.9), top, w, h, cat_data()
+    ).chart
+    ch.has_legend = True
+    ch.legend.position = XL_LEGEND_POSITION.BOTTOM
+
+    s = slide("Trends")
+    s.shapes.add_chart(XL_CHART_TYPE.LINE_MARKERS, left, top, w, h, cat_data())
+    s.shapes.add_chart(XL_CHART_TYPE.AREA, Inches(6.9), top, w, h, cat_data(2))
+
+    s = slide("Share of Q4")
+    pie = CategoryChartData()
+    pie.categories = list(series)
+    pie.add_series("Q4", [v[3] for v in series.values()])
+    s.shapes.add_chart(XL_CHART_TYPE.PIE, left, top, w, h, pie)
+    s.shapes.add_chart(XL_CHART_TYPE.DOUGHNUT, Inches(6.9), top, w, h, pie)
+
+    s = slide("Price vs. volume")
+    xy = XyChartData()
+    a = xy.add_series("Products")
+    for x, y in [(1, 4), (2, 7), (3, 6), (4, 10), (5, 12), (6, 11)]:
+        a.add_data_point(x, y)
+    s.shapes.add_chart(XL_CHART_TYPE.XY_SCATTER, left, top, w, h, xy)
+    s.shapes.add_chart(XL_CHART_TYPE.RADAR, Inches(6.9), top, w, h, cat_data(2))
+
+    prs.save(out("charts.pptx"))
+
+
 def make_pptx() -> None:
     from pptx import Presentation
     from pptx.dml.color import RGBColor
@@ -434,6 +488,7 @@ if __name__ == "__main__":
     make_pdfs()
     make_docx()
     make_pptx()
+    make_chart_pptx()
     make_xlsx()
     make_styled_xlsx()
     make_text()

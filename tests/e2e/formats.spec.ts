@@ -45,6 +45,18 @@ test('PPTX renders slides with text, shapes, images and tables', async ({ page }
   await expect(dialog.getByRole('group', { name: 'Slide 4' }).locator('table')).toBeAttached();
 });
 
+test('PPTX charts are drawn as SVG from cached values', async ({ page }) => {
+  const dialog = await openPreview(page, 'charts.pptx');
+  const charts = dialog.getByRole('img', { name: /chart:/ });
+  await expect(charts.first()).toBeVisible();
+  await expect(
+    dialog.getByRole('img', { name: 'Bar chart: North, South, West' }).first(),
+  ).toBeVisible();
+  // bars actually have extent
+  const box = await dialog.locator('svg.dsc-slide-chart rect').first().boundingBox();
+  expect(box!.height).toBeGreaterThan(10);
+});
+
 test('XLSX is a read-only grid with sheets, merges and cached formula values', async ({ page }) => {
   const dialog = await openPreview(page, 'budget.xlsx');
   const grid = dialog.getByRole('grid');

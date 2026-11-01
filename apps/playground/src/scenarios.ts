@@ -48,6 +48,14 @@ export const allFormats: PreviewDocument[] = [
       description: 'Quarterly business review',
     },
   }),
+  doc('pptx-charts', 'charts.pptx', 81286, {
+    metadata: {
+      size: 81286,
+      uploadedAt: iso(4),
+      uploadedBy: 'Sales',
+      description: 'Bar, line, area, pie, doughnut, scatter and radar charts',
+    },
+  }),
   doc('xlsx', 'budget.xlsx', 36156, {
     metadata: {
       size: 36156,
