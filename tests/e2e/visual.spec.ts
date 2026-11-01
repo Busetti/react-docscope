@@ -4,11 +4,6 @@ import { gotoScenario, openPreview } from './helpers';
 // Screenshot baselines are generated on Linux (CI); fonts differ on other OSes.
 test.skip(process.platform !== 'linux', 'Visual baselines are Linux-only');
 
-const mask = (page: import('@playwright/test').Page) => [
-  page.locator('.pg-log'),
-  page.locator('.pg-code'),
-];
-
 for (const [name, file] of [
   ['pdf', 'sample.pdf'],
   ['docx', 'proposal.docx'],
@@ -33,9 +28,10 @@ for (const [name, file] of [
       })
       .toBe(true);
     // These shots cover document rendering; the attachment list's scroll offset varies by
-    // environment once it overflows, so it is masked here.
+    // environment once it overflows, so it is masked. (Never mask page elements behind the
+    // modal: Playwright paints masks on top, so they would cover parts of the dialog.)
     await expect(dialog).toHaveScreenshot(`${name}.png`, {
-      mask: [...mask(page), dialog.locator('.dsc-sidebar-list')],
+      mask: [dialog.locator('.dsc-sidebar-list')],
     });
   });
 }
