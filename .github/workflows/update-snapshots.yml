@@ -1,0 +1,36 @@
+name: Update visual baselines
+
+# Visual baselines must come from the CI runner (fonts and rasterisation differ
+# elsewhere). Push a branch named update-snapshots/<anything>, or run manually;
+# the regenerated screenshots are committed back to that branch for review.
+on:
+  push:
+    branches: ['update-snapshots/**']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    if: github.actor != 'github-actions[bot]'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm exec playwright install --with-deps chromium
+      - run: pnpm fixtures && pnpm build && pnpm --filter playground build
+      - run: pnpm exec playwright test --project=visual --update-snapshots
+      - name: Commit updated baselines
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add tests/e2e/__screenshots__
+          if git diff --cached --quiet; then echo 'Baselines unchanged.'; exit 0; fi
+          git commit -m 'test(visual): regenerate baselines on the CI runner'
+          git push
