@@ -15,6 +15,7 @@
     "dev": "pnpm --filter react-docscope build && pnpm --parallel --filter react-docscope --filter playground dev",
     "playground": "pnpm --filter playground dev",
     "storybook": "pnpm --filter docs storybook",
+    "build:pages": "node scripts/build-pages.mjs",
     "fixtures": "node scripts/generate-large-fixtures.mjs",
     "test": "jest",
     "test:coverage": "jest --coverage && node scripts/check-coverage.mjs",

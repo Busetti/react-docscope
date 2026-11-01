@@ -3,7 +3,7 @@ import type { DocumentResolver, PreviewDocument } from 'react-docscope';
 const f = (id: string, name: string, description?: string): PreviewDocument => ({
   id,
   name,
-  url: `/fixtures/${name}`,
+  url: `fixtures/${name}`,
   metadata: {
     uploadedBy: 'Storybook',
     uploadedAt: '2026-10-01T09:30:00Z',
@@ -29,10 +29,10 @@ export const samples = {
 export const allSamples = Object.values(samples);
 
 export const failing: PreviewDocument[] = [
-  { id: 'missing', name: 'missing.pdf', url: '/fixtures/does-not-exist.pdf' },
+  { id: 'missing', name: 'missing.pdf', url: 'fixtures/does-not-exist.pdf' },
   f('malformed', 'malformed.docx'),
   f('empty', 'empty.txt'),
-  { id: 'unknown', name: 'archive.bin', url: '/fixtures/unknown.bin' },
+  { id: 'unknown', name: 'archive.bin', url: 'fixtures/unknown.bin' },
 ];
 
 export const urlResolver: DocumentResolver = async (doc) => ({ kind: 'url', url: doc.url! });

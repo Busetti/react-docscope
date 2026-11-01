@@ -141,7 +141,12 @@ export function fixturesServer(): Plugin {
       // Copy the small fixtures so a static deployment of the playground still works.
       const target = join(outDir, 'fixtures');
       mkdirSync(target, { recursive: true });
-      cpSync(FIXTURES, target, { recursive: true, filter: (src) => !src.includes(`${'/'}large`) });
+      // Large generated fixtures only when asked (the Pages demo includes them).
+      const withLarge = process.env.PLAYGROUND_LARGE_FIXTURES === '1';
+      cpSync(FIXTURES, target, {
+        recursive: true,
+        filter: (src) => withLarge || !src.includes(`${'/'}large`),
+      });
     },
   };
 }

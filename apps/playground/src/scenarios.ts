@@ -184,12 +184,15 @@ export const failureDocs: PreviewDocument[] = [
 
 /* ------------------------------------------------------------------ resolvers */
 
+/** Maps the demo's root-relative paths onto the deployment base (e.g. GitHub Pages). */
+export const href = (p: string) => `${import.meta.env.BASE_URL}${p.replace(/^\//, '')}`;
+
 const path = (d: PreviewDocument) => (d.url ?? '').replace(/^\/fixtures\//, '');
 
 /** Plain resolver: use the document URL. */
 export const directResolver: DocumentResolver = async (d) => {
   if (!d.url) throw new Error('This document has no storage location.');
-  return { kind: 'url', url: d.url };
+  return { kind: 'url', url: href(d.url) };
 };
 
 /**
@@ -214,14 +217,14 @@ export function createSignedUrlResolver(
     log(
       `resolve "${d.name}" · purpose=${purpose} · attempt=${attempt} · reason=${reason} → ${attempt === 0 && purpose === 'preview' ? 'expired URL' : `URL valid for ${ttlMs / 1000}s`}`,
     );
-    return { kind: 'url', url: `/signed/${path(d)}?expires=${expires}&sig=${sig}` };
+    return { kind: 'url', url: href(`/signed/${path(d)}?expires=${expires}&sig=${sig}`) };
   };
 }
 
 /** Resolver using an Authorization header (never logged by the library). */
 export const headerResolver: DocumentResolver = async (d) => ({
   kind: 'url',
-  url: `/secure/${path(d)}`,
+  url: href(`/secure/${path(d)}`),
   headers: { Authorization: 'Bearer demo-token' },
 });
 
@@ -231,7 +234,7 @@ export const failureResolver: DocumentResolver = async (d) => {
       'Backend unavailable (503) while signing https://storage.example.com/key?X-Amz-Signature=secret',
     );
   if (!d.url) throw new Error('No URL');
-  return { kind: 'url', url: d.url };
+  return { kind: 'url', url: href(d.url) };
 };
 
 /** Local files picked by the user: previewed from memory, never uploaded. */

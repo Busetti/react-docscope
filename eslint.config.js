@@ -8,6 +8,7 @@ export default tseslint.config(
     ignores: [
       '**/dist/**',
       '**/storybook-static/**',
+      'site/**',
       '**/coverage/**',
       'playwright-report/**',
       'test-results/**',
