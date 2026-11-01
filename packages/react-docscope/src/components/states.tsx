@@ -37,6 +37,7 @@ const TITLES: Record<PreviewError['code'], string> = {
   MALFORMED_DOCUMENT: 'Unable to read document',
   RENDER_FAILED: 'Unable to display document',
   DOWNLOAD_FAILED: 'Download failed',
+  PASSWORD_REQUIRED: 'Password required',
 };
 
 export interface MessageStateProps {
@@ -80,7 +81,7 @@ export function ErrorState({
     error.code === 'UNSUPPORTED_FORMAT' ||
     error.code === 'TOO_LARGE';
   const icon =
-    error.code === 'ACCESS_DENIED' ? (
+    error.code === 'ACCESS_DENIED' || error.code === 'PASSWORD_REQUIRED' ? (
       <ShieldAlert aria-hidden="true" />
     ) : error.code === 'UNSUPPORTED_FORMAT' ? (
       <FileQuestion aria-hidden="true" />

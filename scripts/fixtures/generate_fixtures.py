@@ -125,6 +125,14 @@ def make_pdfs() -> None:
         fh.write(b"%PDF-1.7\n" + data[200:900])
     open(out("empty.pdf"), "wb").close()
 
+    # Encrypted copy for the password prompt (user password: "docscope").
+    from pypdf import PdfReader, PdfWriter
+
+    w = PdfWriter(clone_from=PdfReader(out("contract-v2.pdf")))
+    w.encrypt(user_password="docscope", owner_password="docscope-owner", algorithm="AES-256")
+    with open(out("locked.pdf"), "wb") as fh:
+        w.write(fh)
+
 
 # ---------------------------------------------------------------- docx
 def make_docx() -> None:

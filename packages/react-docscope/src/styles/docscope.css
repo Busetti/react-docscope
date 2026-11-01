@@ -742,6 +742,52 @@
 .dsc-action--secondary:hover {
   background: var(--dsc-surface);
 }
+.dsc-action:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.dsc-password {
+  height: 100%;
+}
+.dsc-password-name {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--dsc-text);
+  font-weight: 500;
+  overflow-wrap: anywhere;
+}
+.dsc-password-form {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: min(320px, 100%);
+  margin-top: 8px;
+}
+.dsc-password-input {
+  box-sizing: border-box;
+  width: 100%;
+  height: 36px;
+  padding: 0 10px;
+  border: 1px solid var(--dsc-border-strong);
+  border-radius: var(--dsc-radius-sm);
+  background: var(--dsc-bg);
+  color: var(--dsc-text);
+  font: inherit;
+}
+.dsc-password-input:focus-visible {
+  outline: 2px solid var(--dsc-focus);
+  outline-offset: 1px;
+}
+.dsc-password-input[aria-invalid='true'] {
+  border-color: var(--dsc-danger);
+}
+.dsc-password-error {
+  margin: 0;
+  color: var(--dsc-danger);
+  font-size: 13px;
+}
 
 .dsc-banner {
   display: flex;

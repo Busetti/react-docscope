@@ -73,6 +73,8 @@ export function defaultMessage(code: PreviewErrorCode): string {
       return 'Something went wrong while displaying this document.';
     case 'DOWNLOAD_FAILED':
       return 'The download failed.';
+    case 'PASSWORD_REQUIRED':
+      return 'This PDF is password protected.';
   }
 }
 

@@ -45,6 +45,12 @@ export const DEFAULT_LABELS: PreviewLabels = {
   noDocuments: 'No documents to preview',
   loading: 'Loading document',
   unsupported: 'Preview not available',
+  passwordTitle: 'Password required',
+  passwordPrompt: 'This PDF is password protected. Enter the password to open it.',
+  password: 'Password',
+  passwordIncorrect: 'Incorrect password. Please try again.',
+  unlock: 'Open',
+  cancel: 'Cancel',
 };
 
 export const DEFAULT_SHORTCUTS: Record<ShortcutAction, string[]> = {

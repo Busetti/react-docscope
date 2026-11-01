@@ -6,6 +6,7 @@ import { errorFromStatus, isAbortError } from '../../core/errors';
 import { useElementSize, useLatest, useWheelZoom } from '../shared/hooks';
 import { collectTextNodes } from '../../core/highlight';
 import { enableMainThreadFallback, ensurePdfWorker } from './pdfWorker';
+import { PasswordPrompt } from './PasswordPrompt';
 import {
   buildPageText,
   canvasScale,
@@ -20,6 +21,12 @@ import {
 type PdfjsLib = typeof import('pdfjs-dist');
 const GAP = 16;
 
+interface PasswordRequest {
+  incorrect: boolean;
+  submit: (password: string) => void;
+  cancel: () => void;
+}
+
 interface PageSize {
   width: number;
   height: number;
@@ -28,10 +35,7 @@ interface PageSize {
 function classifyPdfError(error: unknown): { code: PreviewErrorCode; message: string } {
   const e = error as { name?: string; status?: number; message?: string };
   if (e?.name === 'PasswordException') {
-    return {
-      code: 'RENDER_FAILED',
-      message: 'This PDF is password protected and cannot be previewed.',
-    };
+    return { code: 'PASSWORD_REQUIRED', message: 'This PDF is password protected.' };
   }
   if (e?.name === 'InvalidPDFException' || /invalid pdf|corrupt/i.test(e?.message ?? '')) {
     return {
@@ -66,6 +70,7 @@ export default function PdfRenderer({
   const container = useElementSize(scrollRef);
   const [pdf, setPdf] = useState<{ lib: PdfjsLib; doc: PDFDocumentProxy } | null>(null);
   const [sizes, setSizes] = useState<PageSize[]>([]);
+  const [passwordRequest, setPasswordRequest] = useState<PasswordRequest | null>(null);
 
   /* ----------------------------------------------------------- loading */
   useEffect(() => {
@@ -94,8 +99,29 @@ export default function PdfRenderer({
                 withCredentials: request.credentials === 'include',
               }
             : { ...common, data: new Uint8Array(await source.getArrayBuffer()) };
-        task = lib.getDocument(params) as unknown as typeof task;
-        return task!.promise;
+        const loading = lib.getDocument(params) as unknown as NonNullable<typeof task> & {
+          onPassword?: (update: (password: string) => void, reason: number) => void;
+        };
+        task = loading;
+        // Encrypted PDFs: ask the user. The password only lives in this closure
+        // and in pdf.js; it is never logged, cached or reported.
+        loading.onPassword = (update, reason) => {
+          if (cancelled) return;
+          setPasswordRequest({
+            incorrect: reason === (lib.PasswordResponses?.INCORRECT_PASSWORD ?? 2),
+            submit: (password) => {
+              setPasswordRequest(null);
+              update(password);
+            },
+            cancel: () => {
+              setPasswordRequest(null);
+              hostRef.current.setError('PASSWORD_REQUIRED', 'This PDF is password protected.');
+            },
+          });
+          // Hide the loading skeleton so the prompt is visible.
+          hostRef.current.setReady();
+        };
+        return loading.promise;
       };
       let doc: PDFDocumentProxy;
       try {
@@ -124,6 +150,7 @@ export default function PdfRenderer({
     });
     return () => {
       cancelled = true;
+      setPasswordRequest(null);
       // Destroying the loading task also destroys the document and its worker-side resources.
       void (task as { destroy(): Promise<void> } | null)?.destroy();
     };
@@ -328,6 +355,16 @@ export default function PdfRenderer({
     if (single) pagesToRender.push(refIndex);
     else
       for (let i = range[0]; i <= Math.min(range[1], pageCount - 1); i += 1) pagesToRender.push(i);
+  }
+
+  if (passwordRequest) {
+    return (
+      <PasswordPrompt
+        request={passwordRequest}
+        labels={config.labels}
+        documentName={document.name}
+      />
+    );
   }
 
   return (

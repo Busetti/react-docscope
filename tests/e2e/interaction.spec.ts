@@ -107,6 +107,32 @@ test('failures show meaningful states and never leak signed URLs', async ({ page
   await expect(dialog.locator('.dsc-pdf-page').first()).toBeVisible();
 });
 
+test('encrypted PDFs ask for a password', async ({ page }) => {
+  await gotoScenario(page, 'failures');
+  const dialog = await openPreview(page, 'locked.pdf');
+  const input = dialog.getByRole('textbox', { name: 'Password' });
+  await expect(input).toBeFocused();
+  // a11y of the prompt itself
+  const results = await new AxeBuilder({ page }).include('.dsc-password').analyze();
+  expect(results.violations.map((v) => v.id)).toEqual([]);
+  // typing must not trigger single-key viewer shortcuts (r = rotate, f = fullscreen)
+  await input.fill('nope');
+  await input.press('Enter');
+  await expect(dialog.getByRole('alert')).toHaveText('Incorrect password. Please try again.');
+  await expect(input).toHaveValue('');
+  await input.pressSequentially('docscope');
+  await dialog.getByRole('button', { name: 'Open', exact: true }).click();
+  await expect(dialog.locator('.dsc-pdf-page canvas[data-rendered="true"]').first()).toBeVisible();
+  await expect(dialog.getByRole('textbox', { name: /Page 1 of 3/ })).toBeVisible();
+  // cancel → PASSWORD_REQUIRED state with a retry that asks again
+  await page.keyboard.press('Escape');
+  const again = await openPreview(page, 'locked.pdf');
+  await again.getByRole('button', { name: 'Cancel' }).click();
+  await expect(again.getByText('Password required')).toBeVisible();
+  await again.getByRole('button', { name: 'Retry' }).click();
+  await expect(again.getByRole('textbox', { name: 'Password' })).toBeVisible();
+});
+
 test('local files are previewed without uploading', async ({ page }) => {
   await gotoScenario(page, 'local');
   const uploads: string[] = [];

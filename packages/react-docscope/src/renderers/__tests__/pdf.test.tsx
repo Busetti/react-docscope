@@ -112,7 +112,7 @@ describe('PdfRenderer', () => {
 
   it.each([
     [{ name: 'InvalidPDFException' }, 'MALFORMED_DOCUMENT'],
-    [{ name: 'PasswordException' }, 'RENDER_FAILED'],
+    [{ name: 'PasswordException' }, 'PASSWORD_REQUIRED'],
     [{ name: 'ResponseException', status: 403 }, 'ACCESS_DENIED'],
     [{ name: 'ResponseException', status: 404 }, 'NOT_FOUND'],
     [{ name: 'MissingPDFException' }, 'FETCH_FAILED'],
@@ -125,6 +125,61 @@ describe('PdfRenderer', () => {
     });
     await r.failed();
     expect(r.host.setError).toHaveBeenCalledWith(code, expect.any(String));
+  });
+});
+
+describe('PDF password prompt', () => {
+  const open = () =>
+    renderRenderer(PdfRenderer, {
+      name: 'locked.pdf',
+      resolved: { kind: 'url', url: 'https://x/locked.pdf' },
+    });
+
+  it('asks for the password, reports incorrect attempts and opens the document', async () => {
+    mock.__setMockPdf({ numPages: 2, password: 's3cret' });
+    const r = open();
+    const input = await screen.findByLabelText('Password');
+    expect(r.host.setReady).toHaveBeenCalled();
+    expect(screen.getByRole('group', { name: 'Password required' })).toBeTruthy();
+    await waitFor(() => expect(document.activeElement).toBe(input));
+    const submit = screen.getByRole('button', { name: 'Open' }) as HTMLButtonElement;
+    expect(submit.disabled).toBe(true);
+
+    fireEvent.change(input, { target: { value: 'wrong' } });
+    fireEvent.submit(input.closest('form')!);
+    expect(await screen.findByRole('alert')).toHaveProperty(
+      'textContent',
+      'Incorrect password. Please try again.',
+    );
+    const again = screen.getByLabelText('Password') as HTMLInputElement;
+    expect(again.value).toBe('');
+    expect(again.getAttribute('aria-invalid')).toBe('true');
+
+    fireEvent.change(again, { target: { value: 's3cret' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Open' }));
+    await waitFor(() => expect(r.host.setPageCount).toHaveBeenCalledWith(2));
+    expect(screen.queryByLabelText('Password')).toBeNull();
+    expect(r.host.setError).not.toHaveBeenCalled();
+  });
+
+  it('reports PASSWORD_REQUIRED when the prompt is cancelled', async () => {
+    mock.__setMockPdf({ password: 'x' });
+    const r = open();
+    fireEvent.click(await screen.findByRole('button', { name: 'Cancel' }));
+    expect(r.host.setError).toHaveBeenCalledWith('PASSWORD_REQUIRED', expect.any(String));
+  });
+
+  it('ignores empty submissions and uses custom labels', async () => {
+    mock.__setMockPdf({ password: 'x' });
+    renderRenderer(PdfRenderer, {
+      name: 'locked.pdf',
+      resolved: { kind: 'url', url: 'https://x/locked.pdf' },
+      config: { labels: { password: 'Passwort', unlock: 'Öffnen' } },
+    });
+    const input = await screen.findByLabelText('Passwort');
+    fireEvent.submit(input.closest('form')!);
+    expect(screen.getByRole('button', { name: 'Öffnen' })).toBeTruthy();
+    expect(screen.queryByRole('alert')).toBeNull();
   });
 });
 

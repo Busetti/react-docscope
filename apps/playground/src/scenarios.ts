@@ -145,6 +145,12 @@ export const failureDocs: PreviewDocument[] = [
     url: '/status/403',
     metadata: { description: 'Always 403 (retried once, then shown)' },
   },
+  {
+    id: 'locked-pdf',
+    name: 'locked.pdf',
+    url: '/fixtures/locked.pdf',
+    metadata: { description: 'Encrypted PDF (password: docscope)' },
+  },
   { id: 'fail-malformed-pdf', name: 'malformed.pdf', url: '/fixtures/malformed.pdf' },
   { id: 'fail-malformed-docx', name: 'malformed.docx', url: '/fixtures/malformed.docx' },
   { id: 'fail-malformed-xlsx', name: 'malformed.xlsx', url: '/fixtures/malformed.xlsx' },

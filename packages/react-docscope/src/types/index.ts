@@ -98,6 +98,8 @@ export type PreviewErrorCode =
   | 'EMPTY_DOCUMENT'
   | 'MALFORMED_DOCUMENT'
   | 'RENDER_FAILED'
+  /** An encrypted PDF whose password prompt was dismissed. */
+  | 'PASSWORD_REQUIRED'
   | 'DOWNLOAD_FAILED';
 
 /* -------------------------------------------------------------------------- */
@@ -385,6 +387,13 @@ export interface PreviewLabels {
   noDocuments: string;
   loading: string;
   unsupported: string;
+  /** PDF password prompt. */
+  passwordTitle: string;
+  passwordPrompt: string;
+  password: string;
+  passwordIncorrect: string;
+  unlock: string;
+  cancel: string;
 }
 
 export type ResolvedPreviewConfig = Required<
