@@ -83,6 +83,7 @@ interface Settings {
   defaultFit: 'width' | 'page' | 'none';
   defaultZoom: number;
   prefetch: boolean;
+  workers: boolean;
   customAction: boolean;
 }
 
@@ -104,6 +105,7 @@ const DEFAULTS: Settings = {
   defaultFit: 'width',
   defaultZoom: 1,
   prefetch: true,
+  workers: true,
   customAction: false,
 };
 
@@ -184,6 +186,7 @@ export function App() {
       fullscreen: settings.fullscreen,
       shortcuts: settings.shortcuts ? undefined : false,
       prefetch: settings.prefetch ? 'adjacent' : 'none',
+      workers: settings.workers,
       pdf: { scrollMode: settings.pdfScroll, thumbnails: settings.pdfThumbnails },
       zoom: { defaultFit: settings.defaultFit, default: settings.defaultZoom },
       metadataFields: [
@@ -506,6 +509,7 @@ function ConfigPanel({
         {toggle('fullscreen', 'Fullscreen')}
         {toggle('shortcuts', 'Keyboard shortcuts')}
         {toggle('prefetch', 'Prefetch adjacent (small files)')}
+        {toggle('workers', 'Parse XLSX/CSV in a worker')}
         {toggle('customAction', 'Custom toolbar action')}
       </fieldset>
       <fieldset>

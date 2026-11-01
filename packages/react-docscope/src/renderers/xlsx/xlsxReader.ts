@@ -2,6 +2,7 @@ import { unzipSync, strFromU8 } from 'fflate';
 import type { CSSProperties } from 'react';
 import { BUILTIN_FORMATS, formatCellValue, isDateFormat } from './numberFormat';
 import { scanElements, scanRows, scanSharedStrings } from './xmlScan';
+import { MiniNode, parseMiniXml } from './miniXml';
 
 /**
  * Minimal, read-only XLSX (Office Open XML SpreadsheetML) reader.
@@ -135,23 +136,22 @@ const INDEXED = [
   '333333',
 ];
 
-function parseXmlDoc(xml: string): Document {
-  const doc = new DOMParser().parseFromString(xml, 'application/xml');
-  if (doc.getElementsByTagName('parsererror').length) throw new Error('Malformed workbook XML.');
-  return doc;
+type XmlEl = MiniNode;
+
+function parseXmlDoc(xml: string): MiniNode {
+  return parseMiniXml(xml);
 }
 
-function els(parent: Element | Document, local: string): Element[] {
-  return Array.from(parent.getElementsByTagNameNS('*', local));
+function els(parent: MiniNode, local: string): MiniNode[] {
+  return parent.getElementsByTagNameNS('*', local);
 }
 
-function child(parent: Element, local: string): Element | undefined {
-  for (const c of Array.from(parent.children)) if (c.localName === local) return c;
-  return undefined;
+function child(parent: MiniNode, local: string): MiniNode | undefined {
+  return parent.children.find((c) => c.localName === local);
 }
 
-function children(parent: Element, local: string): Element[] {
-  return Array.from(parent.children).filter((c) => c.localName === local);
+function children(parent: MiniNode, local: string): MiniNode[] {
+  return parent.children.filter((c) => c.localName === local);
 }
 
 /** "AB12" → { row: 11, col: 27 } (zero-based). */
@@ -216,7 +216,7 @@ function applyTint(hex: string, tint: number): string {
   return `${hex2(rr)}${hex2(gg)}${hex2(bb)}`.toUpperCase();
 }
 
-function readColor(el: Element | undefined, theme: string[]): string | undefined {
+function readColor(el: XmlEl | undefined, theme: string[]): string | undefined {
   if (!el) return undefined;
   const rgb = el.getAttribute('rgb');
   const tint = Number(el.getAttribute('tint') ?? 0);

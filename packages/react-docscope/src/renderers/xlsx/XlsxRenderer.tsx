@@ -4,20 +4,30 @@ import { toPreviewError } from '../../core/errors';
 import { textIncludes } from '../../core/search';
 import { useAsync, useLatest } from '../shared/hooks';
 import { DataGrid, columnLabel } from '../shared/DataGrid';
-import { readWorkbook, type XlsxSheet, type XlsxWorkbook } from './xlsxReader';
+import type { XlsxSheet } from './xlsxReader';
+import { openWorkbook, type AsyncWorkbook } from '../shared/worker/client';
 
 /**
  * Strictly read-only workbook preview. There is intentionally no editing,
  * formula evaluation or save path: formula cells show their cached results.
  */
-export default function XlsxRenderer({ document, source, search, view, host }: RendererProps) {
+export default function XlsxRenderer({
+  document,
+  source,
+  search,
+  view,
+  host,
+  config,
+}: RendererProps) {
   const hostRef = useLatest(host);
-  const { value: workbook, error } = useAsync<XlsxWorkbook>(async () => {
+  const useWorker = config.workers;
+  const { value: workbook, error } = useAsync<AsyncWorkbook>(async () => {
     const buf = await source.getArrayBuffer();
-    // Yield so the loading skeleton paints before synchronous parsing.
+    // Yield so the loading skeleton paints before (possibly synchronous) parsing.
     await new Promise((r) => setTimeout(r, 0));
-    return readWorkbook(buf);
-  }, [source]);
+    return openWorkbook(buf, useWorker);
+  }, [source, useWorker]);
+  useEffect(() => () => workbook?.close(), [workbook]);
 
   const visible = useMemo(
     () =>
@@ -29,13 +39,20 @@ export default function XlsxRenderer({ document, source, search, view, host }: R
   const [sheetIndex, setSheetIndex] = useState<number | null>(null);
   const activeIndex = sheetIndex ?? visible[0]?.index ?? 0;
 
-  const sheetResult = useMemo<{ sheet?: XlsxSheet; error?: unknown }>(() => {
-    if (!workbook) return {};
-    try {
-      return { sheet: workbook.readSheet(activeIndex) };
-    } catch (e) {
-      return { error: e };
-    }
+  const [sheetResult, setSheetResult] = useState<{
+    sheet?: XlsxSheet;
+    error?: unknown;
+  }>({});
+  useEffect(() => {
+    if (!workbook) return;
+    let live = true;
+    workbook.readSheet(activeIndex).then(
+      (sheet) => live && setSheetResult({ sheet }),
+      (e: unknown) => live && setSheetResult({ error: e }),
+    );
+    return () => {
+      live = false;
+    };
   }, [workbook, activeIndex]);
 
   useEffect(() => {

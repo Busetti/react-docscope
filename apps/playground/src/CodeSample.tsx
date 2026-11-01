@@ -21,6 +21,7 @@ interface Props {
     defaultFit: string;
     defaultZoom: number;
     prefetch: boolean;
+    workers: boolean;
   };
 }
 
@@ -57,6 +58,7 @@ function configLines(s: Props['settings']): string[] {
   if (s.sidebar !== 'auto') out.push(`sidebar: ${s.sidebar}`);
   if (!s.shortcuts) out.push('shortcuts: false');
   if (!s.prefetch) out.push(`prefetch: 'none'`);
+  if (!s.workers) out.push('workers: false');
   const pdf: string[] = [];
   if (s.pdfScroll !== 'continuous') pdf.push(`scrollMode: '${s.pdfScroll}'`);
   if (s.pdfThumbnails) pdf.push('thumbnails: true');

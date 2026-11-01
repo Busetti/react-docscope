@@ -39,12 +39,15 @@ module.exports = {
     '\\.css$': 'identity-obj-proxy',
     '^pdfjs-dist$': '<rootDir>/tests/setup/pdfjs-mock.ts',
     '^pdfjs-dist/(.*)$': '<rootDir>/tests/setup/pdfjs-mock.ts',
+    '^(.*)\\?worker&inline$': '<rootDir>/tests/setup/parse-worker-mock.ts',
     '^virtual:pdf-worker-source$': '<rootDir>/tests/setup/pdf-worker-source-mock.ts',
   },
   collectCoverageFrom: [
     'packages/react-docscope/src/**/*.{ts,tsx}',
     '!packages/react-docscope/src/**/*.test.{ts,tsx}',
     '!packages/react-docscope/src/**/*.d.ts',
+    // Three-line worker entry; its handler is covered via protocol.ts.
+    '!packages/react-docscope/src/**/*.worker.ts',
     '!packages/react-docscope/src/**/__fixtures__/**',
   ],
   coverageReporters: ['text-summary', 'text', 'lcov', 'json-summary'],

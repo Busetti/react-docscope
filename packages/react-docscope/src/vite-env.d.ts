@@ -9,3 +9,8 @@ declare module 'pdfjs-dist/build/pdf.worker.min.mjs' {
 }
 
 declare module '*.css';
+
+declare module '*?worker&inline' {
+  const WorkerFactory: { new (): Worker };
+  export default WorkerFactory;
+}

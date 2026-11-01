@@ -1,10 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Papa from 'papaparse';
 import type { RendererProps } from '../../types';
 import { getExtension } from '../../core/detect';
 import { toPreviewError } from '../../core/errors';
 import { formatBytes } from '../../core/format';
 import { useLatest } from '../shared/hooks';
+import { parseCsvBlob } from './csvParse';
 import { DataGrid, columnLabel } from '../shared/DataGrid';
 import { delimiterLabel, detectHeader, looksNumeric, searchRows } from './csvModel';
 
@@ -55,7 +55,7 @@ export default function CsvRenderer({
 
   useEffect(() => {
     let cancelled = false;
-    let parser: Papa.Parser | null = null;
+    let abort: (() => void) | null = null;
     rowsRef.current = [];
     const ext = getExtension(document);
     const configured =
@@ -87,55 +87,41 @@ export default function CsvRenderer({
           hostRef.current.setError('EMPTY_DOCUMENT', 'This CSV file is empty.');
           return;
         }
-        // Papa Parse detects inputs via `instanceof File`; wrapping is free (no copy).
-        const input =
-          typeof File !== 'undefined' && !(blob instanceof File)
-            ? new File([blob], document.name, { type: blob.type })
-            : (blob as File);
-        Papa.parse<string[]>(input, {
-          delimiter: configured,
-          skipEmptyLines: 'greedy',
-          chunkSize: 1024 * 512,
-          chunk: (results, p) => {
-            parser = p;
-            if (cancelled) {
-              p.abort();
-              return;
-            }
-            delimiter = results.meta.delimiter || delimiter;
-            for (const row of results.data) {
-              if (rowsRef.current.length >= MAX_ROWS) {
-                truncated = true;
-                p.abort();
-                break;
+        abort = parseCsvBlob(
+          blob,
+          { delimiter: configured, maxRows: MAX_ROWS, name: document.name },
+          {
+            onChunk: (rows, detected) => {
+              if (cancelled) return;
+              delimiter = detected || delimiter;
+              const target = rowsRef.current;
+              for (const row of rows) {
+                if (row.length > colCount) colCount = row.length;
+                target.push(row);
               }
-              if (row.length > colCount) colCount = row.length;
-              rowsRef.current.push(row);
-            }
-            // Render the first chunk immediately, then at most ~4 times a second.
-            const now = Date.now();
-            if (rowsRef.current.length && (lastFlush === 0 || now - lastFlush > 250)) {
-              lastFlush = now;
+              // Render the first chunk immediately, then at most ~4 times a second.
+              const now = Date.now();
+              if (target.length && (lastFlush === 0 || now - lastFlush > 250)) {
+                lastFlush = now;
+                rowsRef.current = target.slice();
+                flush(false);
+                hostRef.current.setReady();
+              }
+            },
+            onDone: (wasTruncated) => {
+              if (cancelled) return;
+              truncated = wasTruncated;
               rowsRef.current = rowsRef.current.slice();
-              flush(false);
-              hostRef.current.setReady();
-            }
+              flush(true);
+              if (rowsRef.current.length === 0)
+                hostRef.current.setError('EMPTY_DOCUMENT', 'This CSV file has no rows.');
+              else hostRef.current.setReady();
+            },
+            onError: (message) => {
+              if (!cancelled) hostRef.current.setError('MALFORMED_DOCUMENT', message);
+            },
           },
-          complete: () => {
-            rowsRef.current = rowsRef.current.slice();
-            flush(true);
-            if (rowsRef.current.length === 0)
-              hostRef.current.setError('EMPTY_DOCUMENT', 'This CSV file has no rows.');
-            else hostRef.current.setReady();
-          },
-          error: (err) => {
-            if (!cancelled)
-              hostRef.current.setError(
-                'MALFORMED_DOCUMENT',
-                err.message || 'The CSV file could not be parsed.',
-              );
-          },
-        });
+        );
       })
       .catch((error: unknown) => {
         if (cancelled) return;
@@ -144,7 +130,7 @@ export default function CsvRenderer({
       });
     return () => {
       cancelled = true;
-      (parser as Papa.Parser | null)?.abort();
+      abort?.();
     };
   }, [source, document, config.csv.delimiter, hostRef]);
 

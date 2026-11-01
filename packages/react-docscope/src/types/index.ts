@@ -319,6 +319,14 @@ export interface PreviewConfig {
     delimiter?: string;
   };
 
+  /**
+   * Parse XLSX workbooks in a Web Worker so large files never block the UI.
+   * (CSV already streams in small chunks on the main thread.)
+   * Falls back to the main thread automatically when a worker cannot start
+   * (e.g. a CSP without `worker-src blob:`). Default true.
+   */
+  workers?: boolean;
+
   /** Search debounce in ms. */
   searchDebounce?: number;
   /** Maximum size (bytes) for formats that must be fully downloaded. Default 100 MB. */
