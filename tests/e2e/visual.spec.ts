@@ -22,6 +22,16 @@ for (const [name, file] of [
     const dialog = await openPreview(page, file);
     await page.mouse.move(0, 0);
     await page.waitForTimeout(500);
+    // The sidebar scrolls the active item into view (and re-adjusts after
+    // measuring rows); wait until it stops moving.
+    const scrollTop = () => dialog.locator('.dsc-sidebar-list').evaluate((el) => el.scrollTop);
+    await expect
+      .poll(async () => {
+        const a = await scrollTop();
+        await page.waitForTimeout(250);
+        return a === (await scrollTop());
+      })
+      .toBe(true);
     await expect(dialog).toHaveScreenshot(`${name}.png`, { mask: mask(page) });
   });
 }
