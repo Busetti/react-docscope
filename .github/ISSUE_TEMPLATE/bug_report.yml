@@ -1,0 +1,46 @@
+name: Bug report
+description: Something doesn't render or behave as expected.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for reporting! For **security problems**, please don't open an issue — report privately (Security → Report a vulnerability).
+  - type: textarea
+    id: what
+    attributes:
+      label: What happened?
+      description: What you did, what you expected and what you saw instead. Screenshots help.
+    validations:
+      required: true
+  - type: dropdown
+    id: format
+    attributes:
+      label: Document format
+      multiple: true
+      options:
+        [PDF, Image, DOCX, PPTX, XLSX, CSV, Markdown, Text, JSON, XML, Video, Not format-specific]
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: How to reproduce
+      description: |
+        A minimal code snippet or a link to a repository/StackBlitz. If a specific file triggers it,
+        attach it (only if it contains nothing confidential) or describe how it was created.
+      render: tsx
+  - type: input
+    id: version
+    attributes:
+      label: react-docscope version
+      placeholder: 0.1.0
+    validations:
+      required: true
+  - type: input
+    id: env
+    attributes:
+      label: React version, bundler and browser
+      placeholder: React 19.3, Vite 8, Chrome 141 on macOS
+    validations:
+      required: true

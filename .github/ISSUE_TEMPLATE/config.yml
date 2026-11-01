@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/Busetti/react-docscope/security/advisories/new
+    about: Please report security problems privately.
+  - name: Question or idea discussion
+    url: https://github.com/Busetti/react-docscope/discussions
+    about: Ask how to do something or discuss an idea before opening an issue.

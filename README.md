@@ -1,5 +1,10 @@
 # react-docscope
 
+[![npm](https://img.shields.io/npm/v/react-docscope?color=2563eb)](https://www.npmjs.com/package/react-docscope)
+[![CI](https://github.com/Busetti/react-docscope/actions/workflows/ci.yml/badge.svg)](https://github.com/Busetti/react-docscope/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
+[![Demo](https://img.shields.io/badge/demo-live-16a34a)](https://busetti.github.io/react-docscope/)
+
 **Universal, read-only document preview for React.** One component previews PDF, images,
 Word, PowerPoint, Excel, CSV, Markdown, plain text, JSON, XML and video — with search,
 zoom, attachment navigation, metadata, downloads and split-screen comparison.
@@ -20,6 +25,14 @@ npm install react-docscope
 
 **Live demo:** [busetti.github.io/react-docscope](https://busetti.github.io/react-docscope/) ·
 **Storybook:** [/storybook](https://busetti.github.io/react-docscope/storybook/)
+
+![PDF preview with search highlights and the attachments sidebar](https://raw.githubusercontent.com/Busetti/react-docscope/main/docs/images/pdf-search.png)
+
+| Excel (read-only, styles, sheet tabs)                                                                          | PowerPoint charts, dark theme                                                                                                                           |
+| -------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| ![Excel workbook preview](https://raw.githubusercontent.com/Busetti/react-docscope/main/docs/images/excel.png) | ![PowerPoint slide with bar charts in dark theme](https://raw.githubusercontent.com/Busetti/react-docscope/main/docs/images/powerpoint-charts-dark.png) |
+
+![Two documents compared side by side in dark theme](https://raw.githubusercontent.com/Busetti/react-docscope/main/docs/images/compare-dark.png)
 
 ---
 
@@ -358,6 +371,19 @@ pnpm build:pages    # static demo site (playground + Storybook) into ./site
 See [CONTRIBUTING.md](CONTRIBUTING.md), [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) and
 [docs/RELEASING.md](docs/RELEASING.md). New here? Start with the [project guide](docs/GUIDE.md):
 what was built, Storybook, npm publishing and the change → release workflow.
+
+## Contributing
+
+Ideas, bug reports and pull requests are welcome.
+
+- **Found a bug or have an idea?** [Open an issue](https://github.com/Busetti/react-docscope/issues/new/choose).
+- **Want to change code?** Fork the repository, create a branch, and open a pull request — the
+  steps are in [CONTRIBUTING.md](CONTRIBUTING.md). Issues labelled
+  [`good first issue`](https://github.com/Busetti/react-docscope/labels/good%20first%20issue) are a
+  good place to start.
+- **Security problem?** Please report it privately — see [SECURITY.md](SECURITY.md).
+
+Everyone taking part is expected to follow the [code of conduct](CODE_OF_CONDUCT.md).
 
 ## License
 

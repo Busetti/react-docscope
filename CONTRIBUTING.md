@@ -1,12 +1,27 @@
 # Contributing
 
-Thanks for helping! This is a pnpm monorepo (Node ≥ 20.19, pnpm 10).
+Thanks for helping! Bug reports, ideas, docs fixes and code are all welcome.
 
-```bash
-corepack enable
-pnpm install
-pnpm dev                 # library in watch mode + playground on http://localhost:5173
-```
+## Your first pull request
+
+1. **Discuss bigger changes first.** For anything beyond a small fix, open an issue (or comment on
+   an existing one) so we can agree on the approach before you spend time on it.
+2. **Fork** the repository (the _Fork_ button on GitHub) and clone your fork:
+   ```bash
+   git clone https://github.com/<your-username>/react-docscope.git
+   cd react-docscope
+   git checkout -b fix/short-description
+   ```
+3. **Set up** — this is a pnpm monorepo (Node ≥ 20.19, pnpm 10):
+   ```bash
+   corepack enable          # or: npm install -g pnpm@10
+   pnpm install
+   pnpm dev                 # library in watch mode + playground on http://localhost:5173
+   ```
+4. **Make the change**, add tests, and run the checks below.
+5. **Add a changeset** if users will notice the change: `pnpm changeset`.
+6. **Push and open a pull request** against `main`. CI runs automatically; the maintainer reviews,
+   may ask for changes, and merges when it's ready.
 
 ## Layout
 
