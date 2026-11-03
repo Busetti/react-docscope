@@ -31,7 +31,7 @@ jobs:
       - run: pnpm test:coverage
       - name: Unit tests against React 18
         run: pnpm test:react18
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: coverage
@@ -75,7 +75,7 @@ jobs:
       - run: pnpm exec playwright install --with-deps ${{ (matrix.project == 'firefox' || matrix.project == 'webkit') && matrix.project || 'chromium' }}
       - run: pnpm fixtures && pnpm build && pnpm --filter playground build
       - run: pnpm exec playwright test --project=${{ matrix.project }}
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         if: failure() || matrix.project == 'performance'
         with:
           name: playwright-${{ matrix.project }}
