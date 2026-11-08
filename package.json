@@ -40,7 +40,7 @@
     "@changesets/cli": "^3.0.3",
     "@eslint/js": "^10.0.1",
     "@playwright/test": "1.63.0",
-    "@swc/core": "^1.16.21",
+    "@swc/core": "^1.16.22",
     "@swc/jest": "^0.2.39",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^7.0.1",
@@ -48,13 +48,13 @@
     "@testing-library/user-event": "^14.6.8",
     "@types/jest": "^30.0.0",
     "@types/jest-axe": "^3.5.9",
-    "@types/node": "^22.20.5",
+    "@types/node": "^26.6.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "eslint": "^10.14.0",
     "eslint-plugin-react-hooks": "^7.1.1",
     "fflate": "^0.8.3",
-    "globals": "^17.0.0",
+    "globals": "^17.14.0",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^30.5.2",
     "jest-axe": "^11.0.0",
@@ -64,7 +64,7 @@
     "react-18": "npm:react@18.3.1",
     "react-dom": "^19.3.1",
     "react-dom-18": "npm:react-dom@18.3.1",
-    "typescript": "~6.0.3",
+    "typescript": "~7.0.2",
     "typescript-eslint": "^8.72.1"
   }
 }
