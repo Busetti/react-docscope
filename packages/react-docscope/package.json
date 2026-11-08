@@ -70,7 +70,7 @@
     "@tanstack/react-virtual": "^3.14.24",
     "docx-preview": "^0.4.1",
     "fflate": "^0.8.3",
-    "lucide-react": "^1.66.0",
+    "lucide-react": "^1.69.0",
     "papaparse": "^5.7.0",
     "pdfjs-dist": "^6.4.299",
     "pptxtojson": "~2.2.0",
